@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+
+/* Pink Glow for Dark Mode */
+.dark .glow {
+  box-shadow: 0 0 20px rgba(255, 100, 200, 0.5);
+}
+
+/* Glass effect */
+.glass {
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(12px);
+}

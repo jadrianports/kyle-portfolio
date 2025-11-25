@@ -1,0 +1,280 @@
+/* --- Tailwind Layer Import (Tailwind v4) --- */
+@import "tailwindcss";
+@plugin '@tailwindcss/typography';
+
+
+/* ---------------------------------------------
+   1. Converted Tailwind v3 Config → Tailwind v4 @theme
+---------------------------------------------- */
+@theme {
+  /* Container */
+  --container-2xl: 1400px;
+
+  /* Border radius */
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  /* Colors from theme.extend.colors (mapped to CSS vars) */
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  /* Custom colors */
+  --color-rose: hsl(var(--rose));
+  --color-blush: hsl(var(--blush));
+  --color-champagne: hsl(var(--champagne));
+  --color-coral: hsl(var(--coral));
+
+  --color-neon-pink: hsl(var(--neon-pink));
+  --color-hot-pink: hsl(var(--hot-pink));
+  --color-warm-pink: hsl(var(--warm-pink));
+}
+
+/* ---------------------------------------------
+   2. Base Layer (CSS Variables + Typography)
+---------------------------------------------- */
+@layer base {
+  :root {
+    --background: 350 20% 99%;
+    --foreground: 340 10% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 340 10% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 340 10% 15%;
+
+    --primary: 340 82% 67%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 350 100% 88%;
+    --secondary-foreground: 340 10% 15%;
+
+    --muted: 350 30% 96%;
+    --muted-foreground: 340 10% 45%;
+
+    --accent: 10 100% 85%;
+    --accent-foreground: 340 10% 15%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 350 30% 90%;
+    --input: 350 30% 90%;
+    --ring: 340 82% 67%;
+
+    --radius: 1rem;
+
+    /* Premium Pink Theme */
+    --rose: 350 100% 88%;
+    --blush: 340 100% 90%;
+    --champagne: 40 35% 92%;
+    --coral: 10 100% 75%;
+
+    /* Glassmorphism */
+    --glass-bg: 0 0% 100% / 0.6;
+    --glass-border: 350 30% 90% / 0.3;
+
+    /* Glow */
+    --glow-pink: 340 82% 67%;
+    --glow-soft: 350 100% 88%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(340 82% 67%) 0%, hsl(350 100% 88%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(350 20% 99%) 0%, hsl(350 100% 95%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(10 100% 85%) 0%, hsl(340 82% 67%) 100%);
+  }
+
+  .dark {
+    --background: 0 0% 4%;
+    --foreground: 340 100% 95%;
+
+    --card: 0 0% 6%;
+    --card-foreground: 340 100% 95%;
+
+    --popover: 0 0% 6%;
+    --popover-foreground: 340 100% 95%;
+
+    --primary: 330 100% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 340 50% 15%;
+    --secondary-foreground: 340 100% 95%;
+
+    --muted: 0 0% 10%;
+    --muted-foreground: 340 20% 65%;
+
+    --accent: 330 100% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 330 100% 60%;
+
+    /* Pink Glow Set */
+    --neon-pink: 330 100% 60%;
+    --hot-pink: 340 100% 65%;
+    --warm-pink: 350 100% 70%;
+
+    /* Glass Dark */
+    --glass-bg: 0 0% 10% / 0.4;
+    --glass-border: 330 100% 60% / 0.2;
+
+    /* Glow Dark */
+    --glow-pink: 330 100% 60%;
+    --glow-neon: 340 100% 65%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(330 100% 60%) 0%, hsl(340 100% 65%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(0 0% 4%) 0%, hsl(0 0% 8%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(340 100% 65%) 0%, hsl(350 100% 70%) 100%);
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Inter", sans-serif;
+  }
+}
+
+/* ---------------------------------------------
+   3. Utility Layer (Glass, Gradient Text, Glow)
+---------------------------------------------- */
+@layer utilities {
+  @layer utilities {
+  /* Compact prose for project details */
+  .prose-compact {
+    @apply prose prose-base text-foreground/80; /* base typography + foreground color */
+    line-height: 1.4; /* tighter lines */
+  }
+
+  /* Reduce spacing between paragraphs */
+  .prose-compact p {
+    @apply my-1;
+  }
+
+  /* Headings slightly closer */
+  .prose-compact h1,
+  .prose-compact h2,
+  .prose-compact h3,
+  .prose-compact h4,
+  .prose-compact h5,
+  .prose-compact h6 {
+    @apply mt-2 mb-2;
+  }
+
+  /* Lists with bullets/numbers */
+  .prose-compact ul {
+    @apply list-disc list-inside mb-1 ml-4;
+  }
+
+  .prose-compact ol {
+    @apply list-decimal list-inside mb-1 ml-4;
+  }
+
+  .prose-compact li {
+    @apply my-0.5; /* tighter spacing between items */
+  }
+
+  /* Blockquotes */
+  .prose-compact blockquote {
+    @apply border-l-4 border-primary pl-4 my-2 text-muted-foreground;
+  }
+}
+
+
+  .glass-card {
+    @apply bg-background/60 backdrop-blur-lg border border-primary/20;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+  }
+
+  .glow-box {
+    box-shadow: 0 0 30px hsl(var(--glow-pink) / 0.3);
+  }
+
+  /* ---- ANIMATIONS (Converted from tailwind.config.ts) ---- */
+
+  /* Accordion */
+  @keyframes accordion-down {
+    from { height: 0 }
+    to { height: var(--radix-accordion-content-height) }
+  }
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height) }
+    to { height: 0 }
+  }
+
+  /* Fade in */
+  @keyframes fade-in {
+    0% { opacity: 0; transform: translateY(20px) }
+    100% { opacity: 1; transform: translateY(0) }
+  }
+
+  /* Float */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) }
+    50% { transform: translateY(-20px) }
+  }
+
+  /* Glow */
+  @keyframes glow {
+    0%, 100% { box-shadow: 0 0 20px hsl(var(--glow-pink) / 0.3) }
+    50% { box-shadow: 0 0 40px hsl(var(--glow-pink) / 0.6) }
+  }
+
+  /* Rotate text vertically */
+  @keyframes rotate-text {
+    0% { transform: translateY(0%) }
+    100% { transform: translateY(-100%) }
+  }
+
+  /* Shimmer */
+  @keyframes shimmer {
+    0% { background-position: -1000px 0 }
+    100% { background-position: 1000px 0 }
+  }
+
+  /* ---- Animation Utilities ---- */
+  .animate-accordion-down { animation: accordion-down 0.2s ease-out }
+  .animate-accordion-up { animation: accordion-up 0.2s ease-out }
+  .animate-fade-in { animation: fade-in 0.6s ease-out }
+  .animate-float { animation: float 3s ease-in-out infinite }
+  .animate-glow { animation: glow 2s ease-in-out infinite }
+  .animate-rotate-text { animation: rotate-text 10s linear infinite }
+  .animate-shimmer { animation: shimmer 3s linear infinite }
+
+  
+}
