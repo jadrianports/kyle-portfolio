@@ -1,27 +1,59 @@
+"use client";
+import { useEffect, useState } from "react";
 import { Heart, Sparkles, Target, Zap } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import DOMPurifyModule from "dompurify";
 
-const funFacts = [
-  { icon: Heart, label: "Favorite Color", value: "Rose Pink" },
-  { icon: Sparkles, label: "Favorite Tool", value: "Canva & Notion" },
-  { icon: Target, label: "Marketing Style", value: "Data-Driven Creative" },
-  { icon: Zap, label: "Superpower", value: "Viral Content Creation" },
-];
 
-const workflow = [
-  { step: "01", title: "Research", desc: "Deep dive into market & audience" },
-  { step: "02", title: "Ideation", desc: "Creative brainstorming sessions" },
-  { step: "03", title: "Creation", desc: "Crafting compelling content" },
-  { step: "04", title: "Execution", desc: "Launch & optimize campaigns" },
-  { step: "05", title: "Analysis", desc: "Measure, learn & iterate" },
-];
+type WorkflowStep = { step: string; title: string; desc: string };
+type UniqueTrait = { icon: any; title: string; desc: string };
+const funFacts = [{ icon: Heart, label: "Favorite Color", value: "Rose Pink" }, { icon: Sparkles, label: "Favorite Tool", value: "Canva & Notion" }, { icon: Target, label: "Marketing Style", value: "Data-Driven Creative" }, { icon: Zap, label: "Superpower", value: "Viral Content Creation" },];
+
 
 export const About = () => {
+  const [workflow, setWorkflow] = useState<WorkflowStep[]>([]);
+  const [uniqueTraits, setUniqueTraits] = useState<UniqueTrait[]>([]);
+  const [myStory, setMyStory] = useState<string>("");
+  const [marketingPhilosophy, setMarketingPhilosophy] = useState("");
+
+  useEffect(() => {
+    const fetchHero = async () => {
+      try {
+        const res = await fetch("/api/hero");
+        const json = await res.json();
+
+        if (res.ok && json.data) {
+          const data = json.data; // <-- actually get your hero data
+          // Use default export if needed
+          const DOMPurify = (DOMPurifyModule as any).default || DOMPurifyModule;
+          const iconMap: Record<string, any> = { Heart, Sparkles, Target, Zap };
+          // Convert array to string and sanitize
+          const rawStory = Array.isArray(data.my_story) ? data.my_story.join("") : data.my_story || "";
+          setMyStory(DOMPurify.sanitize(rawStory));
+          setMarketingPhilosophy(data.marketing_philosophy || "");
+          setWorkflow(data.marketing_approach || []);
+          setUniqueTraits(
+            (data.unique_traits || []).map((t: any) => ({
+              ...t,
+              icon: iconMap[t.icon] || Sparkles, // fallback
+            }))
+          );
+        } else {
+          console.error("Error fetching hero:", json.error);
+        }
+      } catch (err) {
+        console.error("Error fetching hero:", err);
+      }
+    };
+
+    fetchHero();
+  }, []);
+
   return (
     <section id="about" className="py-20 px-4">
       <div className="container mx-auto">
-        <motion.div 
+        <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -50,23 +82,17 @@ export const About = () => {
             >
               <Card className="p-8 bg-gradient-to-br from-background to-muted/30 border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-lg h-full">
                 <h3 className="text-2xl font-bold mb-4 text-primary">My Story</h3>
-                <div className="space-y-4 text-muted-foreground">
-                  {[
-                    "Hi there! I'm a marketing professional who believes in the power of authentic storytelling and creative strategy. With over 5+ years in the digital marketing space, I've had the privilege of working with amazing brands and helping them grow their online presence.",
-                    "What drives me? It's the thrill of seeing a campaign come to life and connect with people in meaningful ways. I'm not just about the numbers (though I love a good analytics dashboard!) – I'm about creating content that resonates, inspires, and drives real results.",
-                    "When I'm not crafting the perfect Instagram caption or analyzing campaign metrics, you'll find me exploring new creative tools, staying updated with the latest marketing trends, and probably making mood boards for fun!"
-                  ].map((text, i) => (
-                    <motion.p
-                      key={i}
-                      initial={{ opacity: 0, y: 10 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.2 }}
-                    >
-                      {text}
-                    </motion.p>
-                  ))}
-                </div>
+                <motion.div
+                  className="text-muted-foreground space-y-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6 }}
+                >
+                  <div
+                    dangerouslySetInnerHTML={{ __html: myStory }}
+                  />
+                </motion.div>
               </Card>
             </motion.div>
           </motion.div>
@@ -107,7 +133,7 @@ export const About = () => {
                   ))}
                 </div>
 
-                <motion.div 
+                <motion.div
                   className="mt-6 p-6 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -116,8 +142,7 @@ export const About = () => {
                 >
                   <h4 className="font-semibold text-foreground mb-2">Marketing Philosophy</h4>
                   <p className="text-sm text-muted-foreground italic">
-                    "Great marketing isn't about selling products – it's about telling stories that make 
-                    people feel something, think differently, and take action."
+                    "{marketingPhilosophy}"
                   </p>
                 </motion.div>
               </Card>
@@ -126,7 +151,7 @@ export const About = () => {
         </div>
 
         {/* Marketing Workflow */}
-        <motion.div 
+        <motion.div
           className="mb-16"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -150,7 +175,7 @@ export const About = () => {
                   transition={{ type: "spring", stiffness: 300 }}
                 >
                   <Card className="p-6 bg-gradient-to-br from-background to-muted/30 border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-lg text-center h-full">
-                    <motion.div 
+                    <motion.div
                       className="w-12 h-12 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center text-white font-bold text-lg mx-auto mb-3"
                       whileHover={{ rotate: 360, scale: 1.2 }}
                       transition={{ duration: 0.6 }}
@@ -176,14 +201,8 @@ export const About = () => {
           <Card className="p-8 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
             <h3 className="text-2xl font-bold mb-6 text-center text-primary">What Makes Me Unique</h3>
             <div className="grid md:grid-cols-3 gap-6">
-              {[
-                { icon: Sparkles, title: "Creative + Strategic", desc: "Perfect blend of right-brain creativity and left-brain analytics" },
-                { icon: Target, title: "Results-Focused", desc: "Every campaign is measured, optimized, and improved" },
-                { icon: Heart, title: "Authentic Voice", desc: "Building genuine connections through honest storytelling" },
-                { icon: Zap, title: "Adaptable", desc: "Thrives in fast-paced, ever-changing digital landscapes" },
-                { icon: Sparkles, title: "Lifelong Learner", desc: "Constantly evolving with the latest marketing trends and tools" },
-              ].map((item, index) => (
-                <motion.div 
+              {uniqueTraits.map((item, index) => (
+                <motion.div
                   key={index}
                   className="text-center"
                   initial={{ opacity: 0, y: 20 }}
@@ -191,7 +210,7 @@ export const About = () => {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.15 }}
                 >
-                  <motion.div 
+                  <motion.div
                     className="w-16 h-16 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center mx-auto mb-4"
                     whileHover={{ rotate: 360, scale: 1.2 }}
                     transition={{ duration: 0.6 }}

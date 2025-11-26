@@ -189,36 +189,7 @@ export const Skills = () => {
             </motion.div>
           </motion.div>
 
-          {/* Skill Highlights */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <Card className="p-8 bg-gradient-to-br from-primary/10 to-accent/10 border-primary/30">
-              <h3 className="text-xl font-bold text-center mb-6 text-foreground">What I Excel At</h3>
-              <div className="grid md:grid-cols-3 gap-6 text-center">
-                {[
-                  { value: "97%", label: "Creativity Score" },
-                  { value: "10+", label: "Tools Mastered" },
-                  { value: "95%", label: "Client Satisfaction" }
-                ].map((item, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.15, type: "spring", stiffness: 300 }}
-                    whileHover={{ scale: 1.1, y: -5 }}
-                  >
-                    <div className="text-4xl font-bold text-primary mb-2">{item.value}</div>
-                    <p className="text-sm text-muted-foreground">{item.label}</p>
-                  </motion.div>
-                ))}
-              </div>
-            </Card>
-          </motion.div>
+       
         </div>
       </div>
     </section>

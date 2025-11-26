@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@/utils/supabase/client";
+import  RichTextEditor  from "@/admincomponents/RichTextEditor";
+
 
 const supabase = createClient();
 
@@ -29,9 +31,13 @@ export default function HeroEditor() {
     phone: "",
     address: "",
     resume_url: "",
+    my_story: "",
+    marketing_philosophy: "",
+    marketing_approach: [],
+    unique_traits: [],
   });
 
-const [socialLinks, setSocialLinks] = useState<Record<string, string>>({});
+  const [socialLinks, setSocialLinks] = useState<Record<string, string>>({});
 
   // Fetch hero data on mount
   useEffect(() => {
@@ -53,6 +59,10 @@ const [socialLinks, setSocialLinks] = useState<Record<string, string>>({});
         phone: data.phone || "",
         address: data.address || "",
         resume_url: data.resume_url || "",
+        my_story: data.my_story || "",
+        marketing_philosophy: data.marketing_philosophy || "",
+        marketing_approach: data.marketing_approach || [],
+        unique_traits: data.unique_traits || [],
       });
 
       setSocialLinks(data.social_links || {
@@ -97,6 +107,10 @@ const [socialLinks, setSocialLinks] = useState<Record<string, string>>({});
           address: heroData.address,
           social_links: socialLinks,
           resume_url: heroData.resume_url,
+          my_story: heroData.my_story,
+          marketing_philosophy: heroData.marketing_philosophy,
+          marketing_approach: heroData.marketing_approach,
+          unique_traits: heroData.unique_traits,
         })
         .eq("id", heroId);
 
@@ -436,6 +450,135 @@ const [socialLinks, setSocialLinks] = useState<Record<string, string>>({});
               ))}
             </CardContent>
           </Card>
+{/* My Story */}
+<Card>
+  <CardHeader>
+    <CardTitle>My Story</CardTitle>
+    <CardDescription>Your personal story</CardDescription>
+  </CardHeader>
+  <CardContent className="space-y-2">
+    <RichTextEditor
+      value={heroData.my_story || ""}
+      onChange={(html) =>
+        setHeroData((prev:any) => ({ ...prev, my_story: html }))
+      }
+    />
+  </CardContent>
+</Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Marketing Philosophy</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                value={heroData.marketing_philosophy}
+                onChange={(e) => setHeroData({ ...heroData, marketing_philosophy: e.target.value })}
+                rows={3}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Marketing Approach</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {heroData.marketing_approach.map((step: any, idx: number) => (
+                <div key={idx} className="grid grid-cols-3 gap-2">
+                  <Input
+                    value={step.step}
+                    onChange={(e) => {
+                      const updated = [...heroData.marketing_approach];
+                      updated[idx].step = e.target.value;
+                      setHeroData({ ...heroData, marketing_approach: updated });
+                    }}
+                    placeholder="Step number"
+                  />
+                  <Input
+                    value={step.title}
+                    onChange={(e) => {
+                      const updated = [...heroData.marketing_approach];
+                      updated[idx].title = e.target.value;
+                      setHeroData({ ...heroData, marketing_approach: updated });
+                    }}
+                    placeholder="Title"
+                  />
+                  <Input
+                    value={step.desc}
+                    onChange={(e) => {
+                      const updated = [...heroData.marketing_approach];
+                      updated[idx].desc = e.target.value;
+                      setHeroData({ ...heroData, marketing_approach: updated });
+                    }}
+                    placeholder="Description"
+                  />
+                  <Button variant="destructive" size="icon" onClick={() => {
+                    const updated = heroData.marketing_approach.filter((_: any, i: number) => i !== idx);
+                    setHeroData({ ...heroData, marketing_approach: updated });
+                  }}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <Button size="sm" variant="outline" onClick={() => {
+                setHeroData({ ...heroData, marketing_approach: [...heroData.marketing_approach, { step: "", title: "", desc: "" }] });
+              }}>
+                <Plus className="mr-2 h-4 w-4" /> Add Step
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>What Makes Me Unique</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {heroData.unique_traits.map((trait: any, idx: number) => (
+                <div key={idx} className="grid grid-cols-4 gap-2">
+                  <Input
+                    value={trait.icon}
+                    onChange={(e) => {
+                      const updated = [...heroData.unique_traits];
+                      updated[idx].icon = e.target.value;
+                      setHeroData({ ...heroData, unique_traits: updated });
+                    }}
+                    placeholder="Icon name (Lucide)"
+                  />
+                  <Input
+                    value={trait.title}
+                    onChange={(e) => {
+                      const updated = [...heroData.unique_traits];
+                      updated[idx].title = e.target.value;
+                      setHeroData({ ...heroData, unique_traits: updated });
+                    }}
+                    placeholder="Title"
+                  />
+                  <Input
+                    value={trait.desc}
+                    onChange={(e) => {
+                      const updated = [...heroData.unique_traits];
+                      updated[idx].desc = e.target.value;
+                      setHeroData({ ...heroData, unique_traits: updated });
+                    }}
+                    placeholder="Description"
+                  />
+                  <Button variant="destructive" size="icon" onClick={() => {
+                    const updated = heroData.unique_traits.filter((_: any, i: number) => i !== idx);
+                    setHeroData({ ...heroData, unique_traits: updated });
+                  }}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <Button size="sm" variant="outline" onClick={() => {
+                setHeroData({ ...heroData, unique_traits: [...heroData.unique_traits, { icon: "Sparkles", title: "", desc: "" }] });
+              }}>
+                <Plus className="mr-2 h-4 w-4" /> Add Trait
+              </Button>
+            </CardContent>
+          </Card>
+
         </div>
       </motion.div>
     </div>

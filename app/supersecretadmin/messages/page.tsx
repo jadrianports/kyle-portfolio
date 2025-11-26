@@ -40,8 +40,8 @@ interface Message {
   email: string;
   subject: string;
   message: string;
-  date: string;
-  isRead: boolean;
+  created_at: string;
+  is_read: boolean;
 }
 
 export default function MessagesEditor() {
@@ -68,36 +68,73 @@ export default function MessagesEditor() {
     fetchMessages();
   }, []);
 
-  /** Handle mark read/unread or delete */
-  const handleManageMessage = async (id: string, action: "delete" | "mark_read" | "mark_unread") => {
+  // DELETE message
+  const handleDeleteMessage = async (id: string) => {
     try {
-      const res = await fetch("/api/contact/manage", {
+      const res = await fetch("/api/contact/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, action }),
+        body: JSON.stringify({ id }),
       });
-      console.log("Manage message response:", res);
-      console.log("Request body:", { id, action });
-      console.log("Response status:", res.status);
-      console.log("Response status text:", res.statusText);
-      console.log("Response headers:", res.headers);
-      console.log("Response body:", await res.clone().text());
+
       const data = await res.json();
-      if (res.ok) {
-        toast({ title: data.message });
-        if (action === "delete") setSelectedMessage(null);
-      } else {
+
+      if (!res.ok) {
         toast({ title: "Error", description: data.error, variant: "destructive" });
+        return;
       }
+
+      toast({ title: "Message deleted successfully" });
+
+      // Update local state
+      setMessages(messages.filter((msg) => msg.id !== id));
+      setSelectedMessage(null);
+      setDeleteId(null);
     } catch (err: any) {
-      console.error(err);
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+      console.error("Delete error:", err);
+      toast({ title: "Error deleting message", description: err.message, variant: "destructive" });
     }
   };
 
+  // MARK AS READ / UNREAD
+const handleToggleRead = async (id: string, currentState: boolean) => {
+  try {
+    const res = await fetch("/api/contact/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, is_read: !currentState }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      toast({ title: "Error", description: data.error, variant: "destructive" });
+      return;
+    }
+
+    // Update local state
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === id ? { ...m, is_read: !currentState } : m
+      )
+    );
+
+    toast({
+      title: currentState ? "Marked as unread" : "Marked as read",
+    });
+
+  } catch (err: any) {
+    console.error("Update error:", err);
+    toast({
+      title: "Failed to update message",
+      description: err.message,
+      variant: "destructive",
+    });
+  }
+};
+
   const filteredMessages = messages.filter((msg) => {
-    if (filter === "unread") return !msg.isRead;
-    if (filter === "read") return msg.isRead;
+    if (filter === "unread") return !msg.is_read;
+    if (filter === "read") return msg.is_read;
     return true;
   });
 
@@ -128,7 +165,7 @@ export default function MessagesEditor() {
               </p>
             </div>
             <Badge variant="secondary" className="text-lg px-4 py-2">
-              {messages.filter(m => !m.isRead).length} Unread
+              {messages.filter(m => !m.is_read).length} Unread
             </Badge>
           </div>
 
@@ -146,14 +183,14 @@ export default function MessagesEditor() {
               onClick={() => setFilter("unread")}
               size="sm"
             >
-              Unread ({messages.filter(m => !m.isRead).length})
+              Unread ({messages.filter(m => !m.is_read).length})
             </Button>
             <Button
               variant={filter === "read" ? "default" : "outline"}
               onClick={() => setFilter("read")}
               size="sm"
             >
-              Read ({messages.filter(m => m.isRead).length})
+              Read ({messages.filter(m => m.is_read).length})
             </Button>
           </div>
         </div>
@@ -178,14 +215,14 @@ export default function MessagesEditor() {
               >
                 <Card
                   className={`p-6 cursor-pointer transition-all hover:shadow-lg ${
-                    !msg.isRead
+                    !msg.is_read
                       ? "border-l-4 border-l-primary bg-gradient-to-r from-primary/5 to-transparent"
                       : "hover:border-primary/20"
                   }`}
                   onClick={() => {
                     setSelectedMessage(msg);
-                    if (!msg.isRead) {
-                      handleManageMessage(msg.id, "mark_read");
+                    if (!msg.is_read) {
+                      handleToggleRead(msg.id, msg.is_read);
                     }
                   }}
                 >
@@ -200,7 +237,7 @@ export default function MessagesEditor() {
                             <h3 className="font-semibold text-foreground">
                               {msg.name}
                             </h3>
-                            {!msg.isRead && (
+                            {!msg.is_read && (
                               <Badge variant="default" className="text-xs">
                                 New
                               </Badge>
@@ -224,7 +261,7 @@ export default function MessagesEditor() {
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
-                          {new Date(msg.date).toLocaleDateString()}
+                          {new Date(msg.created_at).toLocaleDateString()}
                         </span>
                         <span className="flex items-center gap-1">
                           <MessageSquare className="w-3 h-3" />
@@ -239,10 +276,10 @@ export default function MessagesEditor() {
                         size="icon"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleManageMessage(msg.id, msg.isRead ? "mark_unread" : "mark_read");
+                          handleToggleRead(msg.id, msg.is_read);
                         }}
                       >
-                        {msg.isRead ? (
+                        {msg.is_read ? (
                           <EyeOff className="w-4 h-4" />
                         ) : (
                           <Eye className="w-4 h-4" />
@@ -253,7 +290,7 @@ export default function MessagesEditor() {
                         size="icon"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleManageMessage(msg.id, msg.isRead ? "mark_unread" : "mark_read");
+                          setDeleteId(msg.id);
                         }}
                         className="hover:bg-destructive/10 hover:text-destructive"
                       >
@@ -281,7 +318,7 @@ export default function MessagesEditor() {
                   <AlertDialogTitle className="text-xl">{selectedMessage.name}</AlertDialogTitle>
                   <p className="text-sm text-muted-foreground">{selectedMessage.email}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {new Date(selectedMessage.date).toLocaleString()}
+                    {new Date(selectedMessage.created_at).toLocaleString()}
                   </p>
                 </div>
               </div>
@@ -296,7 +333,10 @@ export default function MessagesEditor() {
             <AlertDialogFooter>
               <AlertDialogCancel>Close</AlertDialogCancel>
               <AlertDialogAction
-                onClick={() => { deleteId && handleManageMessage(deleteId, "delete")}}
+                onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteId(selectedMessage.id);
+                        }}
 
                 className="bg-destructive hover:bg-destructive/90"
               >
@@ -319,7 +359,7 @@ export default function MessagesEditor() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteId && handleManageMessage(deleteId , "delete")}
+              onClick={() => deleteId && handleDeleteMessage(deleteId)}
               className="bg-destructive hover:bg-destructive/90"
             >
               Delete

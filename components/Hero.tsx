@@ -262,7 +262,7 @@ useEffect(() => {
               </motion.div>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <a
-                  href={heroData.resume_url}
+                  href="/Kyle-Ydrhaine-Villero-Resume.pdf"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center rounded-full border px-8 py-3 text-sm font-medium 
@@ -305,7 +305,7 @@ useEffect(() => {
               >
                 <Image
                   fill
-                  src={`${heroData.profile_image}?t=${Date.now()}`}
+                  src={`/Kyle-Ydrhaine-Villero-Profile.JPEG`}
                   alt="Marketing Professional"
                   sizes="(max-width: 768px) 100vw, 6rem"
                   loading="eager"
