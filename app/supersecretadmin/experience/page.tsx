@@ -8,54 +8,48 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { ExperienceFormDialog, ExperienceFormData } from "@/admincomponents/dialog/ExperienceFormDialog";
-
-interface Experience {
-  id: string;
-  company: string;
-  role: string;
-  start_date: string;
-  end_date: string;
-  currently_working: boolean;
-  description: string;
-  highlights: string[];
-  platform_tools: string[];
-}
+import { getPortfolioData } from "@/lib/getPortfolioData";
+import { useLoading } from "@/contexts/LoadingContext";
+import { AdminSkeleton } from "@/admincomponents/AdminSkeleton";
+import type { ExperienceEntry } from "@/lib/getPortfolioData";
 
 export default function ExperienceEditor() {
   const { toast } = useToast();
 
-  const [experience, setExperience] = useState<Experience[]>([]);
+  const [experience, setExperience] = useState<ExperienceEntry[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingExperience, setEditingExperience] = useState<Experience | null>(null);
+  const [editingExperience, setEditingExperience] = useState<ExperienceEntry | null>(null);
+  const { isLoading, setIsLoading } = useLoading();
 
-  // Fetch experiences (publicly)
+  // Fetch portfolio data using getPortfolioData
+  const fetchEducation = async () => {
+    try {
+      setIsLoading(true);
+      const portfolio = await getPortfolioData();
+      setExperience(portfolio.experience);
+    } catch (err: any) {
+      console.error("Error fetching experience:", err);
+      toast({ title: "⚠️ Failed to fetch experience", description: err.message });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchExperience = async () => {
-      try {
-        const res = await fetch("/api/experience");
-        const json = await res.json();
-        if (json.data) {
-          // Ensure highlights and platform_tools are arrays
-          const data: Experience[] = json.data.map((exp: any) => ({
-            ...exp,
-            highlights: exp.highlights || [],
-            platform_tools: exp.platform_tools || [],
-          }));
-          setExperience(data);
-        }
-      } catch (err) {
-        console.error("Error fetching experiences:", err);
-      }
-    };
-    fetchExperience();
+    fetchEducation();
   }, []);
+
+  if (isLoading) {
+    return <AdminSkeleton type="list" />; // skeleton loader while fetching
+  }
+
 
   const handleAdd = () => {
     setEditingExperience(null);
     setIsDialogOpen(true);
   };
 
-  const handleEdit = (exp: Experience) => {
+  const handleEdit = (exp: ExperienceEntry) => {
     setEditingExperience(exp);
     setIsDialogOpen(true);
   };
@@ -83,7 +77,7 @@ export default function ExperienceEditor() {
         setExperience(experience.map(e => e.id === editingExperience.id ? { ...e, ...formData, highlights: formData.highlights || [], platform_tools: formData.platform_tools || [] } : e));
         toast({ title: "✨ Experience updated!" });
       } else {
-        const newExp: Experience = {
+        const newExp: ExperienceEntry = {
           ...json.data,
           highlights: json.data.highlights || [],
           platform_tools: json.data.platform_tools || [],
@@ -122,9 +116,9 @@ export default function ExperienceEditor() {
     }
   };
 
-  const formatDateRange = (start: string, end: string, currently_working: boolean) => {
+  const formatDateRange = (start: string, end: string | null, currently_working: boolean) => {
     const startYear = new Date(start).getFullYear();
-    const endYear = currently_working ? "Present" : new Date(end).getFullYear();
+    const endYear = currently_working || !end ? "Present" : new Date(end).getFullYear();
     return `${startYear} - ${endYear}`;
   };
 
@@ -225,7 +219,7 @@ export default function ExperienceEditor() {
           company: editingExperience.company,
           role: editingExperience.role,
           start_date: editingExperience.start_date,
-          end_date: editingExperience.end_date,
+          end_date: editingExperience.end_date ?? "",
           currently_working: editingExperience.currently_working,
           description: editingExperience.description,
           highlights: editingExperience.highlights,

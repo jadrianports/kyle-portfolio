@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { EducationFormDialog, EducationFormData } from "@/admincomponents/dialog/EducationFormDialog";
-
+import {useLoading} from "@/contexts/LoadingContext";
+import {AdminSkeleton} from "@/admincomponents/AdminSkeleton";
+import { getPortfolioData } from "@/lib/getPortfolioData";
 interface Education {
   id: string;
   school: string;
@@ -23,23 +25,30 @@ export default function EducationEditor() {
   const [education, setEducation] = useState<Education[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEducation, setEditingEducation] = useState<Education | null>(null);
+  const { isLoading, setIsLoading } = useLoading();
 
   // Fetch education via API route
+    // Fetch portfolio data using getPortfolioData
   const fetchEducation = async () => {
     try {
-      const res = await fetch("/api/education");
-      const json = await res.json();
-      if (res.ok) setEducation(json.data);
-      else throw json.error;
+      setIsLoading(true);
+      const portfolio = await getPortfolioData();
+      setEducation(portfolio.education);
     } catch (err: any) {
       console.error("Error fetching education:", err);
       toast({ title: "⚠️ Failed to fetch education", description: err.message });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     fetchEducation();
   }, []);
+
+  if (isLoading) {
+    return <AdminSkeleton type="list" />; // skeleton loader while fetching
+  }
 
   const handleAdd = () => {
     setEditingEducation(null);

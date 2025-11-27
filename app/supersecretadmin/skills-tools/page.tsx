@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AdminSkeleton } from "@/admincomponents/AdminSkeleton";
+import { getPortfolioData } from "@/lib/getPortfolioData";
+import { useLoading } from "@/contexts/LoadingContext";
 import toast from "react-hot-toast";
 
 interface Skill {
@@ -28,12 +31,14 @@ export default function SkillsToolsEditor() {
   const [newSkillName, setNewSkillName] = useState("");
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newSkillNames, setNewSkillNames] = useState<Record<string, string>>({});
+  const {isLoading, setIsLoading} = useLoading();
 
 
   // Fetch skills and tools (publicly)
   useEffect(() => {
     const fetchSkillTools = async () => {
       try {
+        setIsLoading(true);
         const res = await fetch("/api/skilltool");
         const json = await res.json();
         if (!json.data) return;
@@ -51,10 +56,14 @@ export default function SkillsToolsEditor() {
         setSkills(mapped);
       } catch (err) {
         console.error("Error fetching skills:", err);
-      }
+      }finally {setIsLoading(false);}
     };
     fetchSkillTools();
   }, []);
+
+    if (isLoading) {
+      return <AdminSkeleton type="list" />; // skeleton loader while fetching
+    }
 
   const handleAddCategory = () => {
     const key = newCategoryName.trim().toLowerCase();

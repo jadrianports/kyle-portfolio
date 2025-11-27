@@ -8,15 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { TestimonialFormDialog } from "@/admincomponents/dialog/TestimonialFormDialog";
 import { useToast } from "@/hooks/use-toast";
-
-interface Testimonial {
-  id: string;
-  name: string;
-  role: string;
-  company: string;
-  content: string;
-  image: string;
-}
+import { AdminSkeleton } from "@/admincomponents/AdminSkeleton";
+import { getPortfolioData } from "@/lib/getPortfolioData";
+import { useLoading } from "@/contexts/LoadingContext";
+import type { Testimonial } from "@/lib/getPortfolioData";
 
 export default function TestimonialsEditor() {
   const { toast } = useToast();
@@ -24,21 +19,28 @@ export default function TestimonialsEditor() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
+  const {isLoading, setIsLoading} = useLoading();
 
   // Fetch testimonials from API
   useEffect(() => {
     const fetchTestimonials = async () => {
       try {
-        const res = await fetch("/api/testimonial");
-        const json = await res.json();
-        if (json.data) setTestimonials(json.data);
+        setIsLoading(true);
+        const portfolio = await getPortfolioData();
+        setTestimonials(portfolio.testimonials);
       } catch (err) {
         console.error("Error fetching testimonials:", err);
         toast({ title: "⚠️ Failed to fetch testimonials" });
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchTestimonials();
   }, []);
+
+    if (isLoading) {
+      return <AdminSkeleton type="editor" />; // skeleton loader while fetching
+    }
 
   const handleAdd = () => {
     setEditingTestimonial(null);

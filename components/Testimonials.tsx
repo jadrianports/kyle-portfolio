@@ -3,37 +3,14 @@ import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Quote } from "lucide-react";
 import { motion } from "framer-motion";
+import type { Testimonial } from "@/lib/getPortfolioData";
 
-interface Testimonial {
-  id: string;
-  name: string;
-  role: string;
-  company?: string;
-  content: string;
-  image?: string;
+interface TestimonialsProps {
+  testimonials: Testimonial[];
 }
 
-export const Testimonials = () => {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
 
-  useEffect(() => {
-    const fetchTestimonials = async () => {
-      try {
-        const res = await fetch("/api/testimonial"); // public GET route
-        const json = await res.json();
-        if (res.ok) {
-          setTestimonials(json.data || []);
-        } else {
-          throw json.error;
-        }
-      }
-      catch (err) {
-        console.error("Error fetching testimonials:", err);
-      }
-    };
-    fetchTestimonials();
-  }, []);
-
+export const Testimonials = ({testimonials}: TestimonialsProps) => {
 
   return (
     <section id="testimonials" className="py-20 px-4">

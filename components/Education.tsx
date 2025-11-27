@@ -3,40 +3,13 @@ import { useState, useEffect } from "react";
 import { GraduationCap, Award } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import type { EducationEntry } from "@/lib/getPortfolioData";
 
-interface EducationEntry {
-  id: string;
-  degree: string;
-  school: string;
-  start_year: string;
-  end_year: string;
-  year: string;
-  honors: string[];
+interface EducationProps {
+  education: EducationEntry[];
 }
 
-export const Education = () => {
-  const [education, setEducation] = useState<EducationEntry[]>([]);
-
- useEffect(() => {
-  const fetchEducation = async () => {
-    try {
-      const res = await fetch("/api/education");
-      const json = await res.json();
-      if (res.ok && json.data) {
-        const formattedData = json.data.map((edu: any) => ({
-          ...edu,
-          year: edu.end_year ? `${edu.start_year} - ${edu.end_year}` : `${edu.start_year} - Present`,
-        }));
-        setEducation(formattedData);
-      } else {
-        throw json.error;
-      }
-    } catch (err) {
-      console.error("Error fetching education:", err);
-    }
-  };
-  fetchEducation();
-}, []);
+export const Education = ({education}: EducationProps) => {
   return (
     <section id="education" className="py-20 px-4 bg-muted/30">
       <div className="container mx-auto">

@@ -8,37 +8,40 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { ServiceFormDialog, ServiceFormData } from "@/admincomponents/dialog/ServiceFormDialog";
-
-interface Service {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  deliverables: string[];
-}
+import { getPortfolioData } from "@/lib/getPortfolioData";
+import { AdminSkeleton } from "@/admincomponents/AdminSkeleton";
+import { useLoading } from "@/contexts/LoadingContext";
+import type { Service } from "@/lib/getPortfolioData";
 
 export default function ServicesEditor() {
   const { toast } = useToast();
   const [services, setServices] = useState<Service[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
+  const {isLoading, setIsLoading} = useLoading();
 
   // Fetch services via API route
-  const fetchServices = async () => {
-    try {
-      const res = await fetch("/api/service");
-      const json = await res.json();
-      if (res.ok) setServices(json.data);
-      else throw json.error;
-    } catch (err: any) {
-      console.error("Error fetching services:", err);
-      toast({ title: "⚠️ Failed to fetch services", description: err.message });
-    }
-  };
+  // Fetch Projects from API
+   const fetchServices = async () => {
+     try {
+       setIsLoading(true);
+       const portfolio = await getPortfolioData();
+       setServices(portfolio.services);
+     } catch (err: any) {
+       console.error("Error fetching Services:", err);
+       toast({ title: "⚠️ Failed to fetch Services", description: err.message });
+     } finally {
+       setIsLoading(false);
+     }
+   };
+ 
+   useEffect(() => {
+     fetchServices();
+   }, []);
 
-  useEffect(() => {
-    fetchServices();
-  }, []);
+  if (isLoading) {
+    return <AdminSkeleton type="list" />; // skeleton loader while fetching
+  }
 
   const handleAdd = () => {
     setEditingService(null);

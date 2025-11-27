@@ -1,36 +1,14 @@
 "use client";
-
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import * as LucideIcons from "lucide-react";
+import type { Service } from "@/lib/getPortfolioData";
 
-
-interface Service {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  deliverables: string[];
+interface ServicesProps {
+  services: Service[];
 }
 
-export const Services = () => {
-  const [services, setServices] = useState<Service[]>([]);
-
-  const fetchServices = async () => {
-    try {
-      const res = await fetch("/api/service");
-      const json = await res.json();
-      if (res.ok) setServices(json.data);
-      else throw json.error;
-    } catch (err: any) {
-      console.error("Failed to fetch services:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchServices();
-  }, []);
+export const Services = ({services}: ServicesProps) => {
 
   return (
     <section id="services" className="py-20 px-4">

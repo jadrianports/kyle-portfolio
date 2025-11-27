@@ -12,15 +12,20 @@ export async function POST(req: Request) {
       greeting: body.greeting,
       name: body.name,
       title: body.title,
+      skills: body.skills,
       tagline: body.tagline,
       description: body.description,
       profile_image: body.profileImage,
-      resume_url: body.resume,
       email: body.email,
       phone: body.phone,
       address: body.address,
       social_links: body.socialLinks,
-      updated_at: new Date(),
+      resume_url: body.resume_url,
+      my_story: body.my_story,
+      marketing_philosophy: body.marketing_philosophy,
+      marketing_approach: body.marketing_approach,
+      unique_traits : body.unique_traits,
+      updated_at : new Date()
     })
     .eq("id", body.id); // always 1 row
 

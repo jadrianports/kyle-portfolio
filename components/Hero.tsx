@@ -6,47 +6,15 @@ import { Download, Mail, MapPin, Phone, Instagram, Linkedin, Facebook, Youtube }
 import profileHero from "@/assets/profile-hero.jpg"
 import { motion } from "framer-motion";
 import Image from "next/image";
+import type { HeroData } from "@/lib/getPortfolioData";
 
-interface HeroData {
-  greeting: string;
-  name: string;
-  title: string;
-  description: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-  resume_url?: string;
-  profile_image: string;
-  skills?: string[]; // <-- dynamic skills from API
-  social_links?: {
-    instagram?: string;
-    linkedin?: string;
-    facebook?: string;
-    youtube?: string;
-  };
+interface HeroProps{
+  heroData: HeroData;
 }
 
-export const Hero = () => {
-  const [heroData, setHeroData] = useState<any>(null);
+
+export const Hero = ({ heroData }: HeroProps) => {
   const [currentSkillIndex, setCurrentSkillIndex] = useState(0);
-
-  useEffect(() => {
-    const fetchHero = async () => {
-  try {
-    const res = await fetch("/api/hero");
-    const json = await res.json();
-    if (res.ok && json.data) {
-      setHeroData(json.data);
-    } else {
-      console.error("Error fetching hero:", json.error);
-    }
-  } catch (err) {
-    console.error("Error fetching hero:", err);
-  }
-};
-
-    fetchHero();
-  }, []);
 
 useEffect(() => {
   if (!heroData?.skills || heroData.skills.length === 0) return;
@@ -262,7 +230,7 @@ useEffect(() => {
               </motion.div>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <a
-                  href="/Kyle-Ydrhaine-Villero-Resume.pdf"
+                  href="/uploads/Kyle-Ydrhaine-Villero-Resume.pdf"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center rounded-full border px-8 py-3 text-sm font-medium 
@@ -305,7 +273,7 @@ useEffect(() => {
               >
                 <Image
                   fill
-                  src={`/Kyle-Ydrhaine-Villero-Profile.JPEG`}
+                  src={heroData.profile_image}
                   alt="Marketing Professional"
                   sizes="(max-width: 768px) 100vw, 6rem"
                   loading="eager"

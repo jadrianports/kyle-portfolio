@@ -4,51 +4,32 @@ import { Heart, Sparkles, Target, Zap } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import DOMPurifyModule from "dompurify";
+import type { HeroData } from "@/lib/getPortfolioData";
 
+interface AboutProps {
+  about: HeroData;
+}
 
 type WorkflowStep = { step: string; title: string; desc: string };
 type UniqueTrait = { icon: any; title: string; desc: string };
 const funFacts = [{ icon: Heart, label: "Favorite Color", value: "Rose Pink" }, { icon: Sparkles, label: "Favorite Tool", value: "Canva & Notion" }, { icon: Target, label: "Marketing Style", value: "Data-Driven Creative" }, { icon: Zap, label: "Superpower", value: "Viral Content Creation" },];
 
 
-export const About = () => {
-  const [workflow, setWorkflow] = useState<WorkflowStep[]>([]);
-  const [uniqueTraits, setUniqueTraits] = useState<UniqueTrait[]>([]);
-  const [myStory, setMyStory] = useState<string>("");
-  const [marketingPhilosophy, setMarketingPhilosophy] = useState("");
+export const About = ({ about }: AboutProps) => {
+  const DOMPurify = (DOMPurifyModule as any).default || DOMPurifyModule;
 
-  useEffect(() => {
-    const fetchHero = async () => {
-      try {
-        const res = await fetch("/api/hero");
-        const json = await res.json();
+  const myStory = Array.isArray(about.my_story)
+    ? DOMPurify.sanitize(about.my_story.join(""))
+    : DOMPurify.sanitize(about.my_story || "");
 
-        if (res.ok && json.data) {
-          const data = json.data; // <-- actually get your hero data
-          // Use default export if needed
-          const DOMPurify = (DOMPurifyModule as any).default || DOMPurifyModule;
-          const iconMap: Record<string, any> = { Heart, Sparkles, Target, Zap };
-          // Convert array to string and sanitize
-          const rawStory = Array.isArray(data.my_story) ? data.my_story.join("") : data.my_story || "";
-          setMyStory(DOMPurify.sanitize(rawStory));
-          setMarketingPhilosophy(data.marketing_philosophy || "");
-          setWorkflow(data.marketing_approach || []);
-          setUniqueTraits(
-            (data.unique_traits || []).map((t: any) => ({
-              ...t,
-              icon: iconMap[t.icon] || Sparkles, // fallback
-            }))
-          );
-        } else {
-          console.error("Error fetching hero:", json.error);
-        }
-      } catch (err) {
-        console.error("Error fetching hero:", err);
-      }
-    };
+  const marketingPhilosophy = about.marketing_philosophy || "";
+  const workflow = about.marketing_approach || [];
 
-    fetchHero();
-  }, []);
+  const iconMap: Record<string, any> = { Heart, Sparkles, Target, Zap };
+  const uniqueTraits = (about.unique_traits || []).map((t) => ({
+    ...t,
+    icon: iconMap[t.icon] || Sparkles,
+  }));
 
   return (
     <section id="about" className="py-20 px-4">

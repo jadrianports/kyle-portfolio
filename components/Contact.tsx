@@ -7,22 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import type { HeroData } from "@/lib/getPortfolioData";
+import { sendContactMessage, ContactFormData } from "@/lib/contact";
 
-interface HeroData {
-  email?: string;
-  phone?: string;
-  address?: string;
-  social_links?: {
-    instagram?: string;
-    linkedin?: string;
-    facebook?: string;
-    youtube?: string;
-  };
+interface ContactProps {
+  heroData: HeroData;
 }
 
-export const Contact = () => {
+export const Contact = ({ heroData }: ContactProps) => {
   const { toast } = useToast();
-  const [heroData, setHeroData] = useState<HeroData | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -30,55 +23,32 @@ export const Contact = () => {
     message: "",
   });
 
- useEffect(() => {
-    const fetchHeroData = async () => {
-      try {
-        const res = await fetch("/api/hero");
-        const json = await res.json();
-        if (res.ok) {
-          setHeroData(json.data);
-        } else {
-          throw json.error;
-        }
-      } catch (err) {
-        console.error("Error fetching hero data:", err);
-      }
-    };
-    fetchHeroData();
-  }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  try {
-    const res = await fetch("/api/contact/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
+    e.preventDefault();
 
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error || "Failed to send message");
+    try {
+      await sendContactMessage(formData as ContactFormData);
 
-    toast({
-      title: "Message Sent!",
-      description: "Thank you for reaching out. I'll get back to you soon! ✨",
-    });
+      toast({
+        title: "Message Sent!",
+        description: "Thank you for reaching out. I'll get back to you soon! ✨",
+      });
 
-    setFormData({ name: "", email: "", subject: "", message: "" });
-  } catch (err: any) {
-    console.error("Error sending message:", err);
-    toast({
-      title: "⚠️ Failed to send message",
-      description: err.message || "Please try again later",
-    });
-  }
-};
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (err: any) {
+      console.error("Error sending message:", err);
+      toast({
+        title: "⚠️ Failed to send message",
+        description: err.message || "Please try again later",
+      });
+    }
+  };
 
 
   return (
     <section id="contact" className="py-20 px-4">
       <div className="container mx-auto">
-        <motion.div 
+        <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -95,7 +65,7 @@ export const Contact = () => {
 
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12">
           {/* Contact Info */}
-          <motion.div 
+          <motion.div
             className="space-y-6"
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -108,14 +78,14 @@ export const Contact = () => {
             >
               <Card className="p-8 bg-gradient-to-br from-background to-muted/30 border-primary/20">
                 <h3 className="text-2xl font-bold mb-6 text-foreground">Get in Touch</h3>
-                
+
                 <div className="space-y-6">
                   {[
                     { icon: Mail, title: "Email", value: heroData?.email },
                     { icon: Phone, title: "Phone", value: heroData?.phone },
                     { icon: MapPin, title: "Location", value: heroData?.address },
                   ].map((item, index) => (
-                    <motion.div 
+                    <motion.div
                       key={index}
                       className="flex items-start gap-4"
                       initial={{ opacity: 0, x: -10 }}
@@ -124,7 +94,7 @@ export const Contact = () => {
                       transition={{ delay: index * 0.1 }}
                       whileHover={{ x: 5 }}
                     >
-                      <motion.div 
+                      <motion.div
                         className="w-12 h-12 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center flex-shrink-0"
                         whileHover={{ rotate: 360, scale: 1.2 }}
                         transition={{ duration: 0.6 }}
@@ -143,11 +113,11 @@ export const Contact = () => {
                   <h4 className="font-semibold text-foreground mb-4">Follow Me</h4>
                   <div className="flex gap-3">
                     {[
-                      {Icon: Instagram , url: heroData?.social_links?.instagram},
-                      {Icon: Linkedin , url: heroData?.social_links?.linkedin},
-                      {Icon: Facebook , url: heroData?.social_links?.facebook},
-                      {Icon: Youtube , url: heroData?.social_links?.youtube}
-                    ].map(({Icon, url}, index) => (
+                      { Icon: Instagram, url: heroData?.social_links?.instagram },
+                      { Icon: Linkedin, url: heroData?.social_links?.linkedin },
+                      { Icon: Facebook, url: heroData?.social_links?.facebook },
+                      { Icon: Youtube, url: heroData?.social_links?.youtube }
+                    ].map(({ Icon, url }, index) => (
                       <motion.div
                         key={index}
                         whileHover={{ scale: 1.2, rotate: 360 }}
@@ -190,14 +160,14 @@ export const Contact = () => {
             >
               <Card className="p-8 bg-gradient-to-br from-background to-muted/30 border-primary/20">
                 <h3 className="text-2xl font-bold mb-6 text-foreground">Send a Message</h3>
-                
+
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {[
                     { id: "name", label: "Your Name", type: "text", placeholder: "Jane Doe" },
                     { id: "email", label: "Email Address", type: "email", placeholder: "jane@example.com" },
                     { id: "subject", label: "Subject", type: "text", placeholder: "Project Inquiry" }
                   ].map((field, index) => (
-                    <motion.div 
+                    <motion.div
                       key={field.id}
                       initial={{ opacity: 0, y: 10 }}
                       whileInView={{ opacity: 1, y: 0 }}

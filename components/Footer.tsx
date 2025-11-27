@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Heart, Instagram, Linkedin, Facebook, Youtube } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import type { HeroData } from "@/lib/getPortfolioData";
 
 const quickLinks = [
   { name: "About", id: "about" },
@@ -13,39 +14,11 @@ const quickLinks = [
   { name: "Contact", id: "contact" },
 ];
 
-interface HeroData {
-  name?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  social_links?: {
-    instagram?: string;
-    linkedin?: string;
-    facebook?: string;
-    youtube?: string;
-  };
+interface FooterProps {
+  heroData: HeroData;
 }
 
-export const Footer = () => {
-  const [heroData, setHeroData] = useState<HeroData | null>(null);
-
-  useEffect(() => {
-    const fetchHeroData = async () => {
-      try {
-        const res = await fetch("/api/hero");
-        const json = await res.json();
-        if (res.ok) {
-          setHeroData(json.data);
-        } else {
-          throw json.error;
-        }
-      } catch (err) {
-        console.error("Error fetching hero data:", err);
-      }
-    };
-    fetchHeroData();
-  }, []);
-
+export const Footer = ({heroData}: FooterProps) => {
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {

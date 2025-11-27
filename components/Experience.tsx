@@ -4,63 +4,33 @@ import { useState, useEffect } from "react";
 import { Briefcase, Calendar } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
-
-interface ExperienceEntry {
-  id: string;
-  role: string;
-  company: string;
-  start_date: string; // ISO string from DB
-  end_date: string | null; // null if currently_working
-  currently_working: boolean;
-  description: string;
-  highlights: string[];
-  platform_tools: string[];
-  period?: string;       // added dynamically
-  platforms?: string;    // added dynamically
+import type { ExperienceEntry } from "@/lib/getPortfolioData";
+interface ExperienceProps {
+  experience: ExperienceEntry[];
 }
+export const Experience = ({experience}: ExperienceProps) => {
+    // Format dates on render
+  const formattedExperiences = experience.map((exp) => {
+    const start = new Date(exp.start_date);
+    const startMonth = start.toLocaleString("en-US", { month: "long" });
+    const startYear = start.getFullYear();
 
-export const Experience = () => {
-  const [experiences, setExperiences] = useState<ExperienceEntry[]>([]);
+    let endStr;
+    if (exp.currently_working || !exp.end_date) {
+      endStr = "Present";
+    } else {
+      const end = new Date(exp.end_date);
+      const endMonth = end.toLocaleString("en-US", { month: "long" });
+      const endYear = end.getFullYear();
+      endStr = `${endMonth} ${endYear}`;
+    }
 
-  useEffect(() => {
-    const fetchExperience = async () => {
-      try {
-        const res = await fetch("/api/experience"); // public GET route
-        const json = await res.json();
-        if (res.ok) {
-          // Format the dates for display
-          const formatted = json.data.map((exp: ExperienceEntry) => {
-            const start = new Date(exp.start_date);
-            const startMonth = start.toLocaleString("en-US", { month: "long" }); // e.g., "November"
-            const startYear = start.getFullYear();
-
-            let endStr;
-            if (exp.currently_working || !exp.end_date) {
-              endStr = "Present";
-            } else {
-              const end = new Date(exp.end_date);
-              const endMonth = end.toLocaleString("en-US", { month: "long" }); // e.g., "March"
-              const endYear = end.getFullYear();
-              endStr = `${endMonth} ${endYear}`;
-            }
-
-            return {
-              ...exp,
-              period: `${startMonth} ${startYear} - ${endStr}`,
-              platforms: exp.platform_tools.join(", "),
-            };
-          });
-          setExperiences(formatted);
-        } else {
-          throw json.error;
-        }
-      } catch (err) {
-        console.error("Error fetching experience:", err);
-      }
+    return {
+      ...exp,
+      period: `${startMonth} ${startYear} - ${endStr}`,
+      platforms: exp.platform_tools.join(", "),
     };
-
-    fetchExperience();
-  }, []);
+  });
 
   return (
     <section id="experience" className="py-20 px-4">
@@ -92,7 +62,7 @@ export const Experience = () => {
             />
 
             <div className="space-y-12">
-              {experiences.map((exp, index) => (
+              {formattedExperiences.map((exp, index) => (
                 <motion.div
                   key={index}
                   className="relative"

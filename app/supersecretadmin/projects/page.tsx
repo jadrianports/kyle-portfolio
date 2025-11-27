@@ -7,43 +7,40 @@ import { Button } from "@/components/ui/button";
 import { ProjectFormDialog } from "@/admincomponents/dialog/ProjectFormDialog";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-
-
-interface Project {
-  id: string;
-  title: string;
-  description: string;
-  thumbnail: string;
-  metrics?: string[];
-  deliverables: string[];
-}
-
+import {getPortfolioData} from "@/lib/getPortfolioData";
+import { useLoading } from "@/contexts/LoadingContext";
+import { AdminSkeleton } from "@/admincomponents/AdminSkeleton";
+import type { Project } from "@/lib/getPortfolioData";
 
 export default function ProjectsEditor() {
   const { toast } = useToast();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const { isLoading, setIsLoading } = useLoading();
 
-  // Fetch testimonials from API
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const res = await fetch("/api/project"); // <-- FIXED
-        if (!res.ok) throw new Error("Failed to fetch projects");
 
-        const json = await res.json();
-        if (json.data) {
-          setProjects(json.data);
-        }
-      } catch (err) {
-        console.error("Error fetching projects:", err);
-        toast({ title: "⚠️ Failed to fetch projects" });
-      }
-    };
+  // Fetch Projects from API
+   const fetchProject = async () => {
+     try {
+       setIsLoading(true);
+       const portfolio = await getPortfolioData();
+       setProjects(portfolio.projects);
+     } catch (err: any) {
+       console.error("Error fetching Projects:", err);
+       toast({ title: "⚠️ Failed to fetch Projects", description: err.message });
+     } finally {
+       setIsLoading(false);
+     }
+   };
+ 
+   useEffect(() => {
+     fetchProject();
+   }, []);
 
-    fetchProjects();
-  }, []);
+  if (isLoading) {
+    return <AdminSkeleton type="list" />; // skeleton loader while fetching
+  }
 
   const handleAdd = () => {
     setEditingProject(null);

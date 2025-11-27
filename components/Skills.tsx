@@ -1,72 +1,43 @@
 "use client";
-import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
+import type { Skill } from "@/lib/getPortfolioData";
 
-interface Skill {
-  name: string;
-  level: number;
-  category?: string; // optional for soft skills
+interface SkillProps {
+  skills: Skill[];
 }
 
-interface CategoryRow {
-  category: string;
-  items: Skill[];
-}
+export const Skills = ({ skills }: SkillProps) => {
+  // Split tech vs soft skills
+  const techSkills: Record<string, Skill[]> = {};
+  const softSkills: Skill[] = [];
 
-export const Skills = () => {
-  const [skills, setSkills] = useState<Record<string, Skill[]>>({});
-  const [softSkills, setSoftSkills] = useState<Skill[]>([]);
-   // Fetch data from your API
-  useEffect(() => {
-    const fetchSkills = async () => {
-      try {
-        const res = await fetch("/api/skilltool"); // endpoint should return { data: CategoryRow[] }
-        const json = await res.json();
-        if (!json.data) return;
+  skills.forEach((skill) => {
+    if (skill.category?.toLowerCase() === "soft skills") {
+      softSkills.push(skill);
+    } else if (skill.category) {
+      if (!techSkills[skill.category]) techSkills[skill.category] = [];
+      techSkills[skill.category].push(skill);
+    }
+  });
 
-        const mapped: Record<string, Skill[]> = {};
-        const soft: Skill[] = [];
+  const categories = Object.keys(techSkills);
 
-        json.data.forEach((row: CategoryRow) => {
-          if (row.category.toLowerCase() === "soft skills") {
-            soft.push(...row.items);
-          } else {
-            mapped[row.category] = row.items;
-          }
-        });
-
-        setSkills(mapped);
-        setSoftSkills(soft);
-      } catch (err) {
-        console.error("Error fetching skills:", err);
-      }
-    };
-
-    fetchSkills();
-  }, []);
-
-  const categories = Object.keys(skills);
-  
   const formatCategoryName = (name: string) => {
-  const exceptions: Record<string, string> = {
-    "ai tools": "AI Tools"
+    const exceptions: Record<string, string> = { "ai tools": "AI Tools" };
+    const lower = name.toLowerCase();
+    if (exceptions[lower]) return exceptions[lower];
+    return name
+      .split(" ")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
   };
-
-  const lower = name.toLowerCase();
-  if (exceptions[lower]) return exceptions[lower];
-
-  return name
-    .split(" ")
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-};
 
   return (
     <section id="skills" className="py-20 px-4 bg-muted/30">
       <div className="container mx-auto">
-        <motion.div 
+        <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -85,12 +56,12 @@ export const Skills = () => {
           {/* Tools by Category */}
           <div>
             <h3 className="text-2xl font-bold text-center mb-8 text-foreground">Technical Tools</h3>
-            
+
             <div className="grid md:grid-cols-2 gap-8">
               {categories.map((category, catIndex) => {
-                const categoryTools = skills[category];
+                const categoryTools = techSkills[category];
                 if (categoryTools.length === 0) return null;
-                
+
                 return (
                   <motion.div
                     key={category}
@@ -107,7 +78,7 @@ export const Skills = () => {
                         <h4 className="text-lg font-semibold text-primary mb-4">{formatCategoryName(category)}</h4>
                         <div className="space-y-4">
                           {categoryTools.map((tool, idx) => (
-                            <motion.div 
+                            <motion.div
                               key={tool.name}
                               initial={{ opacity: 0, x: -10 }}
                               whileInView={{ opacity: 1, x: 0 }}
@@ -116,7 +87,7 @@ export const Skills = () => {
                             >
                               <div className="flex justify-between items-center mb-2">
                                 <span className="text-sm font-medium text-foreground">{tool.name}</span>
-                                <motion.span 
+                                <motion.span
                                   className="text-sm font-bold text-primary"
                                   initial={{ opacity: 0 }}
                                   whileInView={{ opacity: 1 }}
@@ -154,7 +125,7 @@ export const Skills = () => {
             transition={{ duration: 0.6 }}
           >
             <h3 className="text-2xl font-bold text-center mb-8 text-foreground">Soft Skills</h3>
-            
+
             <motion.div
               whileHover={{ scale: 1.01 }}
               transition={{ type: "spring", stiffness: 300 }}
@@ -162,7 +133,7 @@ export const Skills = () => {
               <Card className="p-8 bg-gradient-to-br from-background to-muted/30 border-primary/20 max-w-4xl mx-auto">
                 <div className="grid md:grid-cols-2 gap-6">
                   {softSkills.map((skill, index) => (
-                    <motion.div 
+                    <motion.div
                       key={skill.name}
                       initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
                       whileInView={{ opacity: 1, x: 0 }}
@@ -189,7 +160,7 @@ export const Skills = () => {
             </motion.div>
           </motion.div>
 
-       
+
         </div>
       </div>
     </section>

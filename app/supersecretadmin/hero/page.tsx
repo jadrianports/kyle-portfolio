@@ -3,118 +3,119 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Save, Upload, Plus, Trash2 } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@/utils/supabase/client";
-import  RichTextEditor  from "@/admincomponents/RichTextEditor";
-
+import RichTextEditor from "@/admincomponents/RichTextEditor";
+import { AdminSkeleton } from "@/admincomponents/AdminSkeleton";
+import { useLoading } from "@/contexts/LoadingContext";
+import { getPortfolioData } from "@/lib/getPortfolioData";
+import type { HeroData as HeroDataType } from "@/lib/getPortfolioData";
 
 const supabase = createClient();
 
 export default function HeroEditor() {
   const { toast } = useToast();
+  const { isLoading, setIsLoading, setLoadingText } = useLoading();
   const [isSaving, setIsSaving] = useState(false);
+
+  // Use nullable HeroData type, initialize to null until fetched
+const [heroData, setHeroData] = useState<Partial<HeroDataType>>({});
+
+  // Skills is just a local editable array (kept in sync with heroData.skills on load)
   const [skills, setSkills] = useState<string[]>([]);
-  const [heroId, setHeroId] = useState<string>("");
-  const [heroData, setHeroData] = useState<any>({
-    greeting: "",
-    name: "",
-    title: "",
-    tagline: "",
-    description: "",
-    profileImage: "",
-    email: "",
-    phone: "",
-    address: "",
-    resume_url: "",
-    my_story: "",
-    marketing_philosophy: "",
-    marketing_approach: [],
-    unique_traits: [],
+
+  // social links kept separately for easier two-way editing UI (merged on save)
+  const [socialLinks, setSocialLinks] = useState<Record<string, string>>({
+    instagram: "",
+    linkedin: "",
+    facebook: "",
+    youtube: "",
   });
 
-  const [socialLinks, setSocialLinks] = useState<Record<string, string>>({});
-
-  // Fetch hero data on mount
+  // Fetch hero data once
   useEffect(() => {
     const fetchHero = async () => {
-      const { data, error } = await supabase.from("hero").select("*").limit(1).single();
-      if (error) {
-        console.error("Error fetching hero:", error);
-        return;
+      try {
+        setIsLoading(true);
+        setLoadingText?.("Loading hero...");
+        const portfolio = await getPortfolioData();
+        const h = portfolio.hero ?? {};
+
+        setHeroData(h);
+        setSkills(Array.isArray(h.skills) ? h.skills : h.skills ? [h.skills] : []);
+        setSocialLinks(h.social_links ?? { instagram: "", linkedin: "", facebook: "", youtube: "" });
+      } catch (err: any) {
+        console.error("Error fetching hero:", err);
+        toast({ title: "⚠️ Failed to fetch hero", description: err?.message || String(err) });
+      } finally {
+        setIsLoading(false);
+        setLoadingText?.(undefined);
       }
-
-      setHeroData({
-        greeting: data.greeting || "",
-        name: data.name || "",
-        title: data.title || "",
-        tagline: data.tagline || "",
-        description: data.description || "",
-        profileImage: data.profile_image || "",
-        email: data.email || "",
-        phone: data.phone || "",
-        address: data.address || "",
-        resume_url: data.resume_url || "",
-        my_story: data.my_story || "",
-        marketing_philosophy: data.marketing_philosophy || "",
-        marketing_approach: data.marketing_approach || [],
-        unique_traits: data.unique_traits || [],
-      });
-
-      setSocialLinks(data.social_links || {
-        instagram: "",
-        linkedin: "",
-        facebook: "",
-        youtube: ""
-      });
-      setSkills(data.skills || []);
-      setHeroId(data.id);
     };
 
     fetchHero();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const addSkill = () => setSkills([...skills, ""]);
-  const removeSkill = (index: number) => setSkills(skills.filter((_, i) => i !== index));
-  const updateSkill = (index: number, value: string) => {
-    const updated = [...skills];
-    updated[index] = value;
-    setSkills(updated);
+  if (isLoading) {
+    return <AdminSkeleton type="editor" />; // skeleton loader while fetching
+  }
+  // Helper to update nested heroData safely
+  const patchHero = (patch: Partial<HeroDataType>) => {
+    setHeroData((prev) => ({ ...(prev ?? {}), ...patch }));
   };
 
+  // Skills helpers
+  const addSkill = () => setSkills((s) => [...s, ""]);
+  const removeSkill = (index: number) => setSkills((s) => s.filter((_, i) => i !== index));
+  const updateSkill = (index: number, value: string) =>
+    setSkills((s) => {
+      const copy = [...s];
+      copy[index] = value;
+      return copy;
+    });
 
+  // Save handler: POST to your api route (/api/hero/update)
   const handleSave = async () => {
-    if (!heroId) return;
+    if (!heroData) return;
     setIsSaving(true);
+    setLoadingText?.("Saving hero...");
+    setIsLoading(true);
 
     try {
-      const { error } = await supabase
-        .from("hero")
-        .update({
-          greeting: heroData.greeting,
-          name: heroData.name,
-          title: heroData.title,
-          skills: skills,
-          tagline: heroData.tagline,
-          description: heroData.description,
-          profile_image: heroData.profileImage,
-          email: heroData.email,
-          phone: heroData.phone,
-          address: heroData.address,
-          social_links: socialLinks,
-          resume_url: heroData.resume_url,
-          my_story: heroData.my_story,
-          marketing_philosophy: heroData.marketing_philosophy,
-          marketing_approach: heroData.marketing_approach,
-          unique_traits: heroData.unique_traits,
-        })
-        .eq("id", heroId);
+      // Merge transient local fields
+      const payload = {
+        ...heroData,
+        skills,
+        social_links: socialLinks,
+      };
 
-      if (error) throw error;
+      const res = await fetch("/api/hero/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error?.message || json?.error || "Save failed");
+
+      // Update local state with returned row if provided
+      if (json?.data) {
+        setHeroData(json.data);
+        setSkills(json.data.skills ?? []);
+        setSocialLinks(json.data.social_links ?? socialLinks);
+      }
 
       toast({
         title: "✨ Hero section updated!",
@@ -124,109 +125,92 @@ export default function HeroEditor() {
       console.error("Error saving hero:", err);
       toast({
         title: "⚠️ Failed to save",
-        description: err.message,
+        description: err?.message || String(err),
       });
     } finally {
       setIsSaving(false);
+      setIsLoading(false);
+      setLoadingText?.(undefined);
     }
   };
 
-  const handleResumeUpload = async (file: File) => {
-    if (!file) return;
-    setIsSaving(true);
+  // Resume upload 
+const handleResumeUpload = async (file: File) => {
+  if (!file) return;
 
-    try {
-      const fileName = `Kyle-Ydrhaine-Villero-Resume.pdf`;
-      const { error: uploadError } = await supabase.storage
-        .from("files")
-        .update(fileName, file, {
-          cacheControl: "3600",
-          upsert: true
-        });
+  setIsSaving(true);
+  setLoadingText?.("Uploading resume...");
+  setIsLoading(true);
 
-      if (uploadError) {
-        console.log("Upload error:", uploadError);
-        throw uploadError
-      };
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch("/api/upload/resume", {
+      method: "POST",
+      body: formData,
+    });
+
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || "Upload failed");
+
+    patchHero({ resume_url: json.url });
+
+    toast({
+      title: "📄 Resume uploaded!",
+      description: "Stored in /public/uploads/",
+    });
+  } catch (err: any) {
+    toast({ title: "⚠️ Failed to upload resume", description: err.message });
+  } finally {
+    setIsSaving(false);
+    setIsLoading(false);
+    setLoadingText?.(undefined);
+  }
+};
 
 
-
-      const { data } = supabase.storage.from("files").getPublicUrl(fileName);
-      const publicUrl = data?.publicUrl;
-
-
-      const { error: dbError } = await supabase
-        .from("hero")
-        .update({ resume_url: publicUrl })
-        .eq("id", heroId);
-
-      if (dbError) throw dbError;
-
-      setHeroData((prev: any) => ({ ...prev, resume_url: publicUrl }));
-
-      toast({
-        title: "✅ Resume uploaded!",
-        description: "Resume URL saved successfully",
-      });
-    } catch (err: any) {
-      console.error("Error uploading resume:", err);
-      toast({
-        title: "⚠️ Failed to upload resume",
-        description: err.message,
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
+  // Profile image upload (similar to resume)
   const handleProfileUpload = async (file: File) => {
-    if (!file) return;
-    setIsSaving(true);
+  if (!file) return;
 
-    try {
-      // Create a consistent filename
-      const fileName = `Kyle-Ydrhaine-Villero-Profile.${file.name.split('.').pop()}`;
+  setIsSaving(true);
+  setLoadingText?.("Uploading profile image...");
+  setIsLoading(true);
 
-      // Upload to Supabase storage
-      const { error: uploadError } = await supabase.storage
-        .from("files") // make sure you have this bucket
-        .update(fileName, file, {
-          cacheControl: "3600",
-          upsert: true
-        });
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
 
-      if (uploadError) throw uploadError;
+    const res = await fetch("/api/upload/profile", {
+      method: "POST",
+      body: formData,
+    });
 
-      // Get public URL
-      const { data } = supabase.storage.from("files").getPublicUrl(fileName);
-      const publicUrl = data?.publicUrl;
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || "Upload failed");
 
-      // Update hero table
-      const { error: dbError } = await supabase
-        .from("hero")
-        .update({ profile_image: publicUrl })
-        .eq("id", heroId);
+    patchHero({ profile_image: json.url });
 
-      if (dbError) throw dbError;
+    toast({
+      title: "✅ Profile uploaded!",
+      description: "Stored in /public/uploads/",
+    });
+  } catch (err: any) {
+    toast({ title: "⚠️ Failed to upload profile", description: err.message });
+  } finally {
+    setIsSaving(false);
+    setIsLoading(false);
+    setLoadingText?.(undefined);
+  }
+};
 
-      setHeroData((prev: any) => ({ ...prev, profileImage: publicUrl }));
 
-      toast({
-        title: "✅ Profile image uploaded!",
-        description: "Profile image URL saved successfully",
-      });
-    } catch (err: any) {
-      console.error("Error uploading profile image:", err);
-      toast({
-        title: "⚠️ Failed to upload profile image",
-        description: err.message,
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  // Safe cache-busted resume link
+  const resumeUrlWithCacheBust = heroData?.resume_url ? `${heroData.resume_url}?t=${Date.now()}` : "";
 
-  const resumeUrlWithCacheBust = `${heroData.resume_url}?t=${Date.now()}`;
+  // Loading skeleton while initial data fetch
+  if (heroData === null) return <AdminSkeleton type="editor" />;
 
   return (
     <div className="p-8">
@@ -255,40 +239,26 @@ export default function HeroEditor() {
                 <div className="space-y-2">
                   <Label>Greeting Text</Label>
                   <Input
-                    value={heroData.greeting || ""}
-                    onChange={(e) => setHeroData({ ...heroData, greeting: e.target.value })}
+                    value={heroData.greeting ?? ""}
+                    onChange={(e) => patchHero({ greeting: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>Your Name</Label>
-                  <Input
-                    value={heroData.name || ""}
-                    onChange={(e) => setHeroData({ ...heroData, name: e.target.value })}
-                  />
+                  <Input value={heroData.name ?? ""} onChange={(e) => patchHero({ name: e.target.value })} />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label>Professional Title</Label>
-                <Input
-                  value={heroData.title || ""}
-                  onChange={(e) => setHeroData({ ...heroData, title: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Tagline</Label>
-                <Input
-                  value={heroData.tagline || ""}
-                  onChange={(e) => setHeroData({ ...heroData, tagline: e.target.value })}
-                />
+                <Input value={heroData.title ?? ""} onChange={(e) => patchHero({ title: e.target.value })} />
               </div>
 
               <div className="space-y-2">
                 <Label>Description</Label>
                 <Textarea
-                  value={heroData.description || ""}
-                  onChange={(e) => setHeroData({ ...heroData, description: e.target.value })}
+                  value={heroData.description ?? ""}
+                  onChange={(e) => patchHero({ description: e.target.value })}
                   rows={3}
                 />
               </div>
@@ -298,15 +268,8 @@ export default function HeroEditor() {
                 <Label>Skills</Label>
                 {skills.map((skill, index) => (
                   <div key={index} className="flex gap-2 items-center">
-                    <Input
-                      value={skill}
-                      onChange={(e) => updateSkill(index, e.target.value)}
-                    />
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      onClick={() => removeSkill(index)}
-                    >
+                    <Input value={skill} onChange={(e) => updateSkill(index, e.target.value)} />
+                    <Button variant="destructive" size="icon" onClick={() => removeSkill(index)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -327,16 +290,14 @@ export default function HeroEditor() {
             <CardContent className="space-y-4">
               <div className="flex items-center gap-4">
                 <div className="w-24 h-24 rounded-full bg-gradient-to-br from-rose to-hot-pink flex items-center justify-center overflow-hidden">
-                  {heroData.profileImage && (
-                    <img src={heroData.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                  {heroData.profile_image && (
+                    // keep plain <img> so existing code stays simple
+                    <img src={heroData.profile_image} alt="Profile" className="w-full h-full object-cover" />
                   )}
                 </div>
                 <div className="flex-1 space-y-2">
                   <Label>Image URL</Label>
-                  <Input
-                    value={heroData.profileImage || ""}
-                    onChange={(e) => setHeroData({ ...heroData, profileImage: e.target.value })}
-                  />
+                  <Input value={heroData.profile_image ?? ""} onChange={(e) => patchHero({ profile_image: e.target.value })} />
                   <Input
                     type="file"
                     accept="image/*"
@@ -344,13 +305,8 @@ export default function HeroEditor() {
                       if (e.target.files?.[0]) handleProfileUpload(e.target.files[0]);
                     }}
                   />
-                  {heroData.profileImage && (
-                    <a
-                      href={`${heroData.profileImage}?t=${Date.now()}`} // cache-busting
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary underline text-sm"
-                    >
+                  {heroData.profile_image && (
+                    <a href={`${heroData.profile_image}?t=${Date.now()}`} target="_blank" rel="noopener noreferrer" className="text-primary underline text-sm">
                       View Current Profile Image
                     </a>
                   )}
@@ -374,12 +330,7 @@ export default function HeroEditor() {
                 }}
               />
               {heroData.resume_url && (
-                <a
-                  href={resumeUrlWithCacheBust}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary underline"
-                >
+                <a href={resumeUrlWithCacheBust} target="_blank" rel="noopener noreferrer" className="text-primary underline">
                   View Current Resume
                 </a>
               )}
@@ -396,25 +347,15 @@ export default function HeroEditor() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>Email</Label>
-                  <Input
-                    type="email"
-                    value={heroData.email || ""}
-                    onChange={(e) => setHeroData({ ...heroData, email: e.target.value })}
-                  />
+                  <Input type="email" value={heroData.email ?? ""} onChange={(e) => patchHero({ email: e.target.value })} />
                 </div>
                 <div className="space-y-2">
                   <Label>Phone</Label>
-                  <Input
-                    value={heroData.phone || ""}
-                    onChange={(e) => setHeroData({ ...heroData, phone: e.target.value })}
-                  />
+                  <Input value={heroData.phone ?? ""} onChange={(e) => patchHero({ phone: e.target.value })} />
                 </div>
                 <div className="space-y-2">
                   <Label>Address</Label>
-                  <Input
-                    value={heroData.address || ""}
-                    onChange={(e) => setHeroData({ ...heroData, address: e.target.value })}
-                  />
+                  <Input value={heroData.address ?? ""} onChange={(e) => patchHero({ address: e.target.value })} />
                 </div>
               </div>
             </CardContent>
@@ -432,39 +373,33 @@ export default function HeroEditor() {
                 { key: "instagram", label: "Instagram" },
                 { key: "linkedin", label: "LinkedIn" },
                 { key: "facebook", label: "Facebook" },
-                { key: "youtube", label: "YouTube" }
+                { key: "youtube", label: "YouTube" },
               ].map((platform) => (
                 <div key={platform.key} className="space-y-2">
                   <Label>{platform.label}</Label>
                   <Input
-                    value={socialLinks?.[platform.key] || ""}
-                    onChange={(e) =>
-                      setSocialLinks((prev) => ({
-                        ...prev,
-                        [platform.key]: e.target.value,
-                      }))
-                    }
+                    value={socialLinks?.[platform.key] ?? ""}
+                    onChange={(e) => setSocialLinks((prev) => ({ ...prev, [platform.key]: e.target.value }))}
                     placeholder={`https://${platform.key}.com/your-profile`}
                   />
                 </div>
               ))}
             </CardContent>
           </Card>
-{/* My Story */}
-<Card>
-  <CardHeader>
-    <CardTitle>My Story</CardTitle>
-    <CardDescription>Your personal story</CardDescription>
-  </CardHeader>
-  <CardContent className="space-y-2">
-    <RichTextEditor
-      value={heroData.my_story || ""}
-      onChange={(html) =>
-        setHeroData((prev:any) => ({ ...prev, my_story: html }))
-      }
-    />
-  </CardContent>
-</Card>
+
+          {/* My Story (rich text) */}
+          <Card>
+            <CardHeader>
+              <CardTitle>My Story</CardTitle>
+              <CardDescription>Your personal story</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <RichTextEditor
+                value={heroData.my_story ?? ""}
+                onChange={(html) => patchHero({ my_story: html })}
+              />
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>
@@ -472,113 +407,130 @@ export default function HeroEditor() {
             </CardHeader>
             <CardContent>
               <Textarea
-                value={heroData.marketing_philosophy}
-                onChange={(e) => setHeroData({ ...heroData, marketing_philosophy: e.target.value })}
+                value={heroData.marketing_philosophy ?? ""}
+                onChange={(e) => patchHero({ marketing_philosophy: e.target.value })}
                 rows={3}
               />
             </CardContent>
           </Card>
 
+          {/* Marketing Approach */}
           <Card>
             <CardHeader>
               <CardTitle>Marketing Approach</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {heroData.marketing_approach.map((step: any, idx: number) => (
+              {(heroData.marketing_approach ?? []).map((step: any, idx: number) => (
                 <div key={idx} className="grid grid-cols-3 gap-2">
                   <Input
-                    value={step.step}
+                    value={step.step ?? ""}
                     onChange={(e) => {
-                      const updated = [...heroData.marketing_approach];
-                      updated[idx].step = e.target.value;
-                      setHeroData({ ...heroData, marketing_approach: updated });
+                      const updated = [...(heroData.marketing_approach ?? [])];
+                      updated[idx] = { ...(updated[idx] ?? {}), step: e.target.value };
+                      patchHero({ marketing_approach: updated });
                     }}
                     placeholder="Step number"
                   />
                   <Input
-                    value={step.title}
+                    value={step.title ?? ""}
                     onChange={(e) => {
-                      const updated = [...heroData.marketing_approach];
-                      updated[idx].title = e.target.value;
-                      setHeroData({ ...heroData, marketing_approach: updated });
+                      const updated = [...(heroData.marketing_approach ?? [])];
+                      updated[idx] = { ...(updated[idx] ?? {}), title: e.target.value };
+                      patchHero({ marketing_approach: updated });
                     }}
                     placeholder="Title"
                   />
                   <Input
-                    value={step.desc}
+                    value={step.desc ?? ""}
                     onChange={(e) => {
-                      const updated = [...heroData.marketing_approach];
-                      updated[idx].desc = e.target.value;
-                      setHeroData({ ...heroData, marketing_approach: updated });
+                      const updated = [...(heroData.marketing_approach ?? [])];
+                      updated[idx] = { ...(updated[idx] ?? {}), desc: e.target.value };
+                      patchHero({ marketing_approach: updated });
                     }}
                     placeholder="Description"
                   />
-                  <Button variant="destructive" size="icon" onClick={() => {
-                    const updated = heroData.marketing_approach.filter((_: any, i: number) => i !== idx);
-                    setHeroData({ ...heroData, marketing_approach: updated });
-                  }}>
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    onClick={() => {
+                      const updated = (heroData.marketing_approach ?? []).filter((_: any, i: number) => i !== idx);
+                      patchHero({ marketing_approach: updated });
+                    }}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               ))}
-              <Button size="sm" variant="outline" onClick={() => {
-                setHeroData({ ...heroData, marketing_approach: [...heroData.marketing_approach, { step: "", title: "", desc: "" }] });
-              }}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  patchHero({ marketing_approach: [...(heroData.marketing_approach ?? []), { step: "", title: "", desc: "" }] })
+                }
+              >
                 <Plus className="mr-2 h-4 w-4" /> Add Step
               </Button>
             </CardContent>
           </Card>
 
+          {/* Unique traits */}
           <Card>
             <CardHeader>
               <CardTitle>What Makes Me Unique</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {heroData.unique_traits.map((trait: any, idx: number) => (
+              {(heroData.unique_traits ?? []).map((trait: any, idx: number) => (
                 <div key={idx} className="grid grid-cols-4 gap-2">
                   <Input
-                    value={trait.icon}
+                    value={trait.icon ?? ""}
                     onChange={(e) => {
-                      const updated = [...heroData.unique_traits];
-                      updated[idx].icon = e.target.value;
-                      setHeroData({ ...heroData, unique_traits: updated });
+                      const updated = [...(heroData.unique_traits ?? [])];
+                      updated[idx] = { ...(updated[idx] ?? {}), icon: e.target.value };
+                      patchHero({ unique_traits: updated });
                     }}
                     placeholder="Icon name (Lucide)"
                   />
                   <Input
-                    value={trait.title}
+                    value={trait.title ?? ""}
                     onChange={(e) => {
-                      const updated = [...heroData.unique_traits];
-                      updated[idx].title = e.target.value;
-                      setHeroData({ ...heroData, unique_traits: updated });
+                      const updated = [...(heroData.unique_traits ?? [])];
+                      updated[idx] = { ...(updated[idx] ?? {}), title: e.target.value };
+                      patchHero({ unique_traits: updated });
                     }}
                     placeholder="Title"
                   />
                   <Input
-                    value={trait.desc}
+                    value={trait.desc ?? ""}
                     onChange={(e) => {
-                      const updated = [...heroData.unique_traits];
-                      updated[idx].desc = e.target.value;
-                      setHeroData({ ...heroData, unique_traits: updated });
+                      const updated = [...(heroData.unique_traits ?? [])];
+                      updated[idx] = { ...(updated[idx] ?? {}), desc: e.target.value };
+                      patchHero({ unique_traits: updated });
                     }}
                     placeholder="Description"
                   />
-                  <Button variant="destructive" size="icon" onClick={() => {
-                    const updated = heroData.unique_traits.filter((_: any, i: number) => i !== idx);
-                    setHeroData({ ...heroData, unique_traits: updated });
-                  }}>
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    onClick={() => {
+                      const updated = (heroData.unique_traits ?? []).filter((_: any, i: number) => i !== idx);
+                      patchHero({ unique_traits: updated });
+                    }}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               ))}
-              <Button size="sm" variant="outline" onClick={() => {
-                setHeroData({ ...heroData, unique_traits: [...heroData.unique_traits, { icon: "Sparkles", title: "", desc: "" }] });
-              }}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  patchHero({ unique_traits: [...(heroData.unique_traits ?? []), { icon: "Sparkles", title: "", desc: "" }] })
+                }
+              >
                 <Plus className="mr-2 h-4 w-4" /> Add Trait
               </Button>
             </CardContent>
           </Card>
-
         </div>
       </motion.div>
     </div>

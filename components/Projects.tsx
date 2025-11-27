@@ -1,45 +1,18 @@
 "use client"
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ExternalLink, TrendingUp, Users, Eye, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
+import type { Project } from "@/lib/getPortfolioData";
 
-interface Project {
-  title: string;
-  category: string;
-  description: string;
-  image: string;
-  link: string;
-  details: string;
-  metrics: string;
-  deliverables: string[];
+interface ProjectsProps {
+  projects: Project[];
 }
 
-
-export const Projects = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const res = await fetch("/api/project");
-        const json = await res.json();
-        if (res.ok) {
-          setProjects(json.data);
-        } else {
-          throw json.error;
-        }
-      } catch (err) {
-        console.error("Error fetching projects:", err);
-      }
-    };
-
-    fetchProjects();
-  }, []);
+export const Projects = ({ projects }: ProjectsProps)  => {
+const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   console.log("Fetched projects:", projects);
   return (
@@ -56,7 +29,7 @@ export const Projects = () => {
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            {projects.map((project, index) => (
+            {projects.map((project: Project, index: number) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 30 }}
@@ -107,7 +80,7 @@ export const Projects = () => {
                       </p>
 
                       <div className="grid grid-cols-3 gap-4 mb-4">
-                        {Object.entries(project.metrics).map(([key, value], idx) => (
+                        {Object.entries(project.metrics ?? {}).map(([key, value], idx) => (
                           <motion.div
                             key={key}
                             className="text-center"
