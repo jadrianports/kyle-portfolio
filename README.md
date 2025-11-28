@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Portfolio Admin & Frontend
 
-## Getting Started
+A full-featured personal portfolio project built with **Next.js 14 (App Router)**, **Tailwind CSS**, and **Supabase**.
 
-First, run the development server:
+This project includes both a **frontend portfolio site** and a robust **superadmin dashboard** for managing content dynamically, including services, blogs, projects, and incoming messages.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Frontend Portfolio
+* **Dynamic Sections:** Hero, Education, Experience, Projects, Services, Skills & Tools, Testimonials, Achievements, Certifications, and Blogs.
+* **Modern UI:** Animated, responsive user interface using **Tailwind CSS** and **Framer Motion**.
+* **Interactive Services:** Fully interactive **Services** section with hover effects and detailed deliverables list.
+* **Content Pages:** Dedicated blog post and portfolio project pages.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Admin Dashboard (Superadmin)
+* **CRUD Operations:** Full **Create, Read, Update, Delete (CRUD)** functionality for Services, Blogs, Projects, and managing Messages.
+* **Message Management:** Real-time unread message count, ability to mark messages as read/unread, and deletion capability.
+* **Filtering:** Filterable lists (e.g., read/unread messages, all).
+* **Secure Operations:** Server-side data fetching with **Supabase** for secure and privileged operations.
 
-## Learn More
+### Backend & Database
+* **Database:** Utilizes **Supabase Postgres** for data persistence.
+* **Security:** **Row Level Security (RLS)** is enabled for production-grade security on all relevant tables.
+* **Server Client:** Uses a server-only Supabase client with the `service_role` key for sensitive operations in API routes.
+* **API:** Dedicated API routes for all CRUD functionality exposed only to the admin dashboard.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🛠️ Tech Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Category | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Framework** | **Next.js 14** (App Router) | React framework for server-side rendering and routing. |
+| **Styling** | **Tailwind CSS** | Utility-first CSS framework for rapid UI development. |
+| **Database** | **Supabase** | Backend-as-a-Service (BaaS) for Postgres, Authentication, and Edge Functions. |
+| **Animation** | **Framer Motion** | Library for production-ready, declarative animations. |
+| **Icons** | **Lucide Icons** | A set of beautiful and consistent open-source icons. |
+| **Deployment** | **Vercel** | Hosting and Continuous Integration/Continuous Deployment (CI/CD). |
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
