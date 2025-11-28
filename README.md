@@ -40,3 +40,30 @@ This project includes both a **frontend portfolio site** and a robust **superadm
 | **Deployment** | **Vercel** | Hosting and Continuous Integration/Continuous Deployment (CI/CD). |
 
 ---
+
+## Project Structure
+
+A simplified overview of the project architecture:
+
+```text
+/app
+├── /api
+│   ├── /service
+│   │   ├── create/route.ts   # POST: Create service
+│   │   ├── update/route.ts   # POST: Update service
+│   │   └── delete/route.ts   # POST: Delete service
+│   └── /contact
+│       ├── route.ts          # GET: Fetch messages
+│       ├── update/route.ts   # POST: Mark read/unread
+│       └── delete/route.ts   # POST: Delete message
+├── /lib
+│   ├── getPortfolioData.ts   # Server-side data fetching (multiple routes at once)
+│   └── getBlogBySlug.ts
+├── /utils
+│   ├── supabase/client.ts    # Client-side (Public Anon Key)
+│   └── supabase/server.ts    # Server-side (Service Role Key)
+├── /components               # UI components (Card, Button, Badge)
+├── /public                   # Images and static assets
+└── /styles                   # Tailwind configuration
+
+
