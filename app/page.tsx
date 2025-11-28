@@ -1,22 +1,12 @@
-"use client"
+// app/page.tsx
+"use client";
 
-import Image from "next/image";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import Index from "@/pages/Index";
-
-const queryClient = new QueryClient();
-
-export default function Home() {
+import { ClientProvider } from "@/components/ClientProvider";
+import PageContent from "@/components/PageContent"
+export default function Page() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <Index />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ClientProvider>
+      <PageContent />
+    </ClientProvider>
   );
 }

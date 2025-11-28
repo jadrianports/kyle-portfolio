@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Hero } from "@/components/Hero";
@@ -21,8 +22,7 @@ import { getPortfolioData, PortfolioData } from "@/lib/getPortfolioData";
 import { PortfolioProvider } from "@/contexts/PortfolioProvider";
 import { useLoading } from "@/contexts/LoadingContext";
 
-
-export default function Index() {
+export default function Page() {
   const [data, setData] = useState<PortfolioData | null>(null);
   const { setIsLoading, setLoadingText } = useLoading();
 
@@ -40,32 +40,29 @@ export default function Index() {
         setLoadingText(undefined);
       }
     };
-
     fetchData();
   }, [setIsLoading, setLoadingText]);
 
   if (!data) return null;
+
   return (
-    <div className="min-h-screen bg-background">
-      <PortfolioProvider data={ data }>
-        <ScrollProgressBar />
-        <CursorTrail />
-        <Navigation />
-        <Hero heroData = {data.hero}/>
-        <About about = {data.hero} />
-        <Education education = {data.education} />
-        <Experience experience = {data.experience}/>
-        <Metrics />
-        <Projects projects={data.projects} />
-        <Services services = {data.services}/>
-        <Skills skills = {data.skills }/>
-        <Testimonials testimonials = {data.testimonials} />
-        <Moodboard />
-        {/* <Certifications /> */}
-        <Blog blogPosts = {data.blogPosts} />
-        <Contact heroData = {data.hero}/>
-        <Footer heroData = {data.hero} />
-      </PortfolioProvider>
-    </div>
+    <PortfolioProvider data={data}>
+      <ScrollProgressBar />
+      <CursorTrail />
+      <Navigation />
+      <Hero heroData={data.hero} />
+      <About about={data.hero} />
+      <Education education={data.education} />
+      <Experience experience={data.experience} />
+      <Metrics />
+      <Projects projects={data.projects} />
+      <Services services={data.services} />
+      <Skills skills={data.skills} />
+      <Testimonials testimonials={data.testimonials} />
+      <Moodboard />
+      <Blog blogPosts={data.blogPosts} />
+      <Contact heroData={data.hero} />
+      <Footer heroData={data.hero} />
+    </PortfolioProvider>
   );
-};
+}
