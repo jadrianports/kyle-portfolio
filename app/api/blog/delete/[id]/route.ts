@@ -3,9 +3,9 @@ import { createClient } from "@/utils/supabase/server";
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  const { id } = await params;
   if (!id) return NextResponse.json({ error: "No id provided" }, { status: 400 });
 
   const supabase = await createClient();
