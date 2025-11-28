@@ -7,8 +7,11 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { Calendar, ArrowRight } from "lucide-react";
 import type { BlogPosts } from "@/lib/getPortfolioData";
+interface BlogProps {
+  initialPosts: BlogPosts[];
+}
 
-export default function BlogList({ initialPosts }: { initialPosts: BlogPosts[] }) {
+export default function BlogList({ initialPosts }: BlogProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredPosts = initialPosts.filter(

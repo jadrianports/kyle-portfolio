@@ -4,11 +4,14 @@
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Calendar, ArrowLeft, Share2, Clock } from "lucide-react";
-import type { BlogPosts } from "@/lib/getPortfolioData";
 import Link from "next/link";
 import { Button } from "./ui/button";
+import type { BlogPosts } from "@/lib/getPortfolioData";
+interface BlogProps{
+    post: BlogPosts
+}
 
-export default function BlogContent({ post }: { post: BlogPosts }) {
+export default function BlogContent( {post} : BlogProps) {
     function estimateReadingTime(content: string): string {
         // Strip HTML tags to get only plain text
         const text = content.replace(/<[^>]+>/g, "");
@@ -105,7 +108,7 @@ export default function BlogContent({ post }: { post: BlogPosts }) {
                 >
                     <h2 className="text-3xl font-bold mb-8 text-center">Continue Reading</h2>
                     <div className="text-center">
-                        <Link href="/">
+                        <Link href="/blog">
                             <Button size="lg" className="bg-gradient-to-r from-primary to-accent">
                                 View All Blog Posts
                             </Button>

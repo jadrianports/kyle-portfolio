@@ -1,26 +1,22 @@
-import { createClient} from "@/utils/supabase/server";
+// lib/getBlogBySlug.ts
 import type { BlogPosts } from "@/lib/getPortfolioData";
 
 export async function getBlogBySlug(slug: string): Promise<BlogPosts | null> {
-    if (!slug) {
-    console.error("No blog ID provided");
+  if (!slug) {
+    console.error("No slug provided");
     return null;
   }
+
   try {
-    const supabase = await createClient();
+    const res = await fetch(`/api/blog/${slug}`);
 
-    const { data, error } = await supabase
-      .from("blog")
-      .select("*")
-      .eq("slug", slug)
-      .single();
-
-    if (error) {
-      console.error("Supabase error:", error);
+    if (!res.ok) {
+      console.error("Failed to fetch blog:", res.statusText);
       return null;
     }
 
-    return data as BlogPosts;
+    const json = await res.json();
+    return json.data as BlogPosts;
   } catch (err) {
     console.error("Unexpected error fetching blog:", err);
     return null;

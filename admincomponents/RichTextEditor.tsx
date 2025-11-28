@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import "quill/dist/quill.snow.css";
+import "@/admincomponents/ui/quill-editor.css";
 import { useState } from "react";
 
 // Dynamically import to avoid SSR issues
@@ -25,6 +26,7 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
       ["bold", "italic", "underline", "strike"],
       [{ list: "ordered" }, { list: "bullet" }],
       [{ indent: "-1" }, { indent: "+1" }],
+      [{ color: [] }, { background: [] }],
       ["blockquote", "code-block"],
       ["link", "image"],
       ["clean"],
@@ -40,6 +42,8 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
     "strike",
     "list",      // handles both ordered & bullet
     "indent",
+    "color",
+    "background",
     "blockquote",
     "code-block",
     "link",

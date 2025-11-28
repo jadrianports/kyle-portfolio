@@ -43,13 +43,15 @@ export const Blog = ({ blogPosts }: BlogProps) => {
               >
                 <Card className="overflow-hidden bg-gradient-to-br from-background to-muted/30 border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-lg group h-full">
                   <div className="relative h-48 overflow-hidden">
+                    {post.cover_image && (
                     <motion.img
-                      src={post.cover_image}
+                      src={post?.cover_image}
                       alt={post.title}
                       className="w-full h-full object-cover"
                       whileHover={{ scale: 1.1 }}
                       transition={{ duration: 0.4 }}
                     />
+                    )}
                     <div className="absolute top-4 left-4">
                       <motion.span
                         className="px-3 py-1 bg-primary/90 backdrop-blur-sm text-primary-foreground text-xs rounded-full font-medium"
