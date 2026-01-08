@@ -13,8 +13,6 @@ interface ProjectsProps {
 
 export const Projects = ({ projects }: ProjectsProps)  => {
 const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-
-  console.log("Fetched projects:", projects);
   return (
     <>
       <section id="projects" className="py-20 px-4 bg-muted/30">

@@ -5,8 +5,6 @@ export async function getAllBlogs(): Promise<BlogPosts[]> {
   try {
    const res = await fetch("/api/blog");
    const json = await res.json();
-   console.log(res);
-   console.log(json);
 
     return json.data as BlogPosts[];
   } catch (err) {

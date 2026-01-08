@@ -21,6 +21,6 @@ export default function BlogsPage() {
       };
   
       fetchData();
-    },);
+    },[]);
   return <BlogList initialPosts={data} />;
 }

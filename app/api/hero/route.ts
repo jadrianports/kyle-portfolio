@@ -1,9 +1,9 @@
   // app/api/hero/route.ts
   import { NextResponse } from "next/server";
-  import { createClient } from "@/utils/supabase/server";
+  import { createClient } from "@/utils/supabase/client";
 
   export async function GET() {
-    const supabase = await createClient();
+    const supabase =  createClient();
 
     const { data, error } = await supabase
       .from("hero")

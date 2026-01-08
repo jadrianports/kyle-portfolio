@@ -16,6 +16,7 @@ interface ContactProps {
 
 export const Contact = ({ heroData }: ContactProps) => {
   const { toast } = useToast();
+  const [isEmailValid, setIsEmailValid] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -177,15 +178,35 @@ export const Contact = ({ heroData }: ContactProps) => {
                       <label htmlFor={field.id} className="block text-sm font-medium text-foreground mb-2">
                         {field.label}
                       </label>
-                      <Input
-                        id={field.id}
-                        type={field.type}
-                        placeholder={field.placeholder}
-                        value={formData[field.id as keyof typeof formData]}
-                        onChange={(e) => setFormData({ ...formData, [field.id]: e.target.value })}
-                        required
-                        className="rounded-lg"
-                      />
+                      {field.id === "email" ? (<>
+                        <Input
+                          id={field.id}
+                          type={field.type}
+                          placeholder={field.placeholder}
+                          value={formData[field.id as keyof typeof formData]}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setFormData({ ...formData, [field.id]: value })
+                            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                            setIsEmailValid(emailRegex.test(value))
+                          }}
+                          required
+                          className="rounded-lg"
+                        />
+                        {!isEmailValid && formData.email && (
+                          <p className="text-sm text-red-500 mt-1">Please enter a valid email address</p>
+                        )}
+                      </>) : (
+                        <Input
+                          id={field.id}
+                          type={field.type}
+                          placeholder={field.placeholder}
+                          value={formData[field.id as keyof typeof formData]}
+                          onChange={(e) => setFormData({ ...formData, [field.id]: e.target.value })}
+                          required
+                          className="rounded-lg"
+                        />)}
+
                     </motion.div>
                   ))}
 
@@ -212,7 +233,8 @@ export const Contact = ({ heroData }: ContactProps) => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <Button type="submit" className="w-full rounded-full" size="lg">
+                    <Button type="submit" className="w-full rounded-full" size="lg"
+                      disabled={!isEmailValid || !formData.name || !formData.subject || !formData.message}>
                       Send Message
                       <Send className="w-4 h-4 ml-2" />
                     </Button>

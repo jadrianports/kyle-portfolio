@@ -46,7 +46,8 @@ export default function BlogList({ initialPosts }: BlogProps) {
               <Link href={`/blog/${post.slug}`}>
                 <Card className="overflow-hidden hover:shadow-lg cursor-pointer">
                   <div className="relative h-48">
-                    <img src={post.cover_image} alt={post.title} className="w-full h-full object-cover" />
+                    {post.cover_image && (<img src={post.cover_image} alt={post.title} className="w-full h-full object-cover" />
+                    )}
                     <div className="absolute top-4 left-4 bg-primary/90 text-white px-2 py-1 rounded text-xs">
                       {post.category}
                     </div>

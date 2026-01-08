@@ -16,7 +16,7 @@ export default function BlogContent( {post} : BlogProps) {
         // Strip HTML tags to get only plain text
         const text = content.replace(/<[^>]+>/g, "");
         const words = text.trim().split(/\s+/).length;
-        const wordsPerMinute = 150; // average reading speed
+        const wordsPerMinute = 190; // average reading speed
         const minutes = Math.ceil(words / wordsPerMinute);
         return `${minutes} min read`;
     }

@@ -140,7 +140,7 @@ export const Footer = ({heroData}: FooterProps) => {
               transition={{ duration: 1, repeat: Infinity }}
             >
               <Heart className="w-4 h-4 text-primary fill-primary" />
-            </motion.div> by Marketing Girl © 2024
+            </motion.div> by James Porter © 2025
           </div>
         </motion.div>
       </div>
